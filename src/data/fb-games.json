@@ -1,0 +1,64 @@
+{
+  "games": [
+    {
+      "key": "breakout",
+      "label": "Atari Breakout",
+      "description": "Classic Breakout supporting model-vs-game mode.",
+      "modes": [
+        {
+          "key": "game",
+          "left_label": "GAME",
+          "right_label": "MODEL",
+          "human_controlled": false,
+          "move": null,
+          "fire": null,
+          "available": true,
+          "error": null
+        }
+      ],
+      "models": [
+        {
+          "id": "default",
+          "name": "BreakoutNoFrameskip-v4",
+          "uploaded": false,
+          "default": true
+        }
+      ]
+    },
+    {
+      "key": "pong",
+      "label": "Atari Pong",
+      "description": "Classic Pong supporting model-vs-user and model-vs-game mode.",
+      "modes": [
+        {
+          "key": "user",
+          "left_label": "MODEL",
+          "right_label": "YOU",
+          "human_controlled": true,
+          "move": "↑/↓ or W/S",
+          "fire": "SPACE",
+          "available": true,
+          "error": null
+        },
+        {
+          "key": "game",
+          "left_label": "GAME",
+          "right_label": "MODEL",
+          "human_controlled": false,
+          "move": null,
+          "fire": null,
+          "available": true,
+          "error": null
+        }
+      ],
+      "models": [
+        {
+          "id": "default",
+          "name": "PongNoFrameskip-v4",
+          "uploaded": false,
+          "default": true
+        }
+      ]
+    }
+  ]
+}

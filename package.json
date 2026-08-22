@@ -1,0 +1,48 @@
+{
+  "name": "atari-model-arena-ui",
+  "version": "1.0.0",
+  "description": "Web UI for testing trained models against classic Atari game engines and, when supported, users.",
+  "private": true,
+  "type": "module",
+  "author": "uni-projects-demos",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/uni-projects-demos/atari-model-arena-ui.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uni-projects-demos/atari-model-arena-ui/issues"
+  },
+  "engines": {
+    "node": ">=24.19.0"
+  },
+  "scripts": {
+    "dev": "vite",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "biome lint .",
+    "lint:fix": "biome lint --write .",
+    "format": "biome format --write .",
+    "format:check": "biome format .",
+    "quality": "biome check .",
+    "quality:fix": "biome check --write .",
+    "check:all": "npm run typecheck && npm run format:check && npm run lint && npm run quality",
+    "fix:all": "npm run format && npm run lint:fix && npm run quality:fix",
+    "build": "npm run typecheck && vite build"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "pixi.js": "^8.20.0",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "tailwind-merge": "^3.6.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.10",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@vitejs/plugin-react": "^6.1.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.2.2"
+  }
+}
