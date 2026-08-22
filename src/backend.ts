@@ -12,9 +12,9 @@ const norm = (url: string = ""): string => url.trim().replace(/\/+$/, "");
 const url = (base: string, path: string): string =>
   `${base}${path.startsWith("/") ? path : `/${path}`}`;
 
-export const urlAPI = (path: string): string => url(norm(import.meta.env.API_URL), path);
+export const urlAPI = (path: string): string => url(norm(import.meta.env.VITE_API_URL), path);
 export const urlWebSocket = (path: string): string =>
-  url(norm(import.meta.env.WS_URL) || location.origin.replace(/^http/, "ws"), path);
+  url(norm(import.meta.env.VITE_WS_URL) || location.origin.replace(/^http/, "ws"), path);
 
 export async function loadCatalog(): Promise<Catalog> {
   try {

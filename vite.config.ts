@@ -4,12 +4,11 @@ import { defineConfig, loadEnv } from "vite";
 
 export default defineConfig(({ mode }) => {
   const env: Record<string, string> = loadEnv(mode, process.cwd(), "");
-  const repo: string = env.GITHUB_REPO?.split("/").at(-1) ?? "";
+  const repo: string = env.GITHUB_REPO?.split("/").at(-1) ?? "atari-model-arena-ui";
   const isPages: boolean = mode === "pages";
-  const pagesBase: string = repo && !repo.endsWith(".github.io") ? `/${repo}/` : "/";
 
   return {
-    base: isPages ? pagesBase : "/",
+    base: isPages ? `/${repo}/` : "/",
     plugins: [react()],
     resolve: {
       alias: {
