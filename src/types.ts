@@ -16,11 +16,15 @@ export interface ModelInfo extends NamedEntity {
   default: boolean;
 }
 
-export interface MatchMode extends MatchLabels {
-  key: MatchModeKey;
-  human_controlled: boolean;
+export interface UserControls {
   move: string | null;
   fire: string | null;
+}
+
+export interface MatchMode extends MatchLabels {
+  key: MatchModeKey;
+  is_user: boolean;
+  user_controls: UserControls | null;
   available: boolean;
   error: string | null;
 }

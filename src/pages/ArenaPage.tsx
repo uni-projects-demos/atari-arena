@@ -197,7 +197,7 @@ export default function ArenaPage({
   );
 
   useEffect((): (() => void) | undefined => {
-    if (!mode?.human_controlled || !isRunning) {
+    if (!mode?.is_user || !isRunning) {
       return;
     }
 
@@ -224,7 +224,7 @@ export default function ArenaPage({
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
     };
-  }, [mode?.human_controlled, isRunning]);
+  }, [mode?.is_user, isRunning]);
 
   const handleSocketMsg = (message: MsgServer): void => {
     if (message.type === "started") {
@@ -325,6 +325,10 @@ export default function ArenaPage({
     pixiRef.current?.clear();
     setModeKey(nextMode.key);
 
+    if (status === "stopped" && isModelLoaded) {
+      setStatus("idle");
+    }
+
     history.replaceState(
       {
         gameKey: game.key,
@@ -395,7 +399,7 @@ export default function ArenaPage({
                     onClick={(): void => chooseMode(entry)}
                     aria-pressed={entry.key === modeKey}
                   >
-                    {t(entry.human_controlled ? "mode.user" : "mode.game")}
+                    {t(entry.is_user ? "mode.user" : "mode.game")}
                   </Button>
                 ))}
               </div>
@@ -468,22 +472,22 @@ export default function ArenaPage({
               </Button>
             </div>
 
-            {(mode?.move || mode?.fire) && (
+            {(mode?.user_controls?.move || mode?.user_controls?.fire) && (
               <div className="controls-block">
                 <span className="field-label mode-toggle-label">{t("arena.controls")}</span>
 
                 <div className="control-instructions">
-                  {mode.move && (
+                  {mode.user_controls?.move && (
                     <div className="control-instruction">
                       <span className="field-label">{t("arena.move")}</span>
-                      <kbd>{mode.move}</kbd>
+                      <kbd>{mode.user_controls.move}</kbd>
                     </div>
                   )}
 
-                  {mode.fire && (
+                  {mode.user_controls?.fire && (
                     <div className="control-instruction">
                       <span className="field-label">{t("arena.fireServe")}</span>
-                      <kbd>{mode.fire}</kbd>
+                      <kbd>{mode.user_controls.fire}</kbd>
                     </div>
                   )}
                 </div>

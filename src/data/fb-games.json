@@ -9,9 +9,8 @@
           "key": "game",
           "left_label": "GAME",
           "right_label": "MODEL",
-          "human_controlled": false,
-          "move": null,
-          "fire": null,
+          "is_user": false,
+          "user_controls": null,
           "available": true,
           "error": null
         }
@@ -34,9 +33,11 @@
           "key": "user",
           "left_label": "MODEL",
           "right_label": "YOU",
-          "human_controlled": true,
-          "move": "↑/↓ or W/S",
-          "fire": "SPACE",
+          "is_user": true,
+          "user_controls": {
+            "move": "↑/↓ or W/S",
+            "fire": "SPACE"
+          },
           "available": true,
           "error": null
         },
@@ -44,9 +45,8 @@
           "key": "game",
           "left_label": "GAME",
           "right_label": "MODEL",
-          "human_controlled": false,
-          "move": null,
-          "fire": null,
+          "is_user": false,
+          "user_controls": null,
           "available": true,
           "error": null
         }
