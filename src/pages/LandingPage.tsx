@@ -1,3 +1,4 @@
+import type React from "react";
 import type { GameInfo, MatchModeKey, ModeCatalog } from "@/types";
 import GameLib from "../components/GameLib";
 import ModeLib from "../components/ModeLib";
@@ -16,7 +17,7 @@ export default function LandingPage({
   selectedMode,
   onMode,
   onPlay,
-}: LandingPageProps) {
+}: LandingPageProps): React.JSX.Element {
   return (
     <>
       <ModeLib modes={modes} selected={selectedMode} onSelect={onMode} />

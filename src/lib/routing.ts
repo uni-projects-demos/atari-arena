@@ -10,7 +10,8 @@ export interface RouteState {
 }
 
 function asModeKey(value: string | null): MatchModeKey | null {
-  return value === "user" || value === "game" ? value : null;
+  const normalized: string = value?.trim() ?? "";
+  return normalized || null;
 }
 
 export function buildURL(gameKey: string | null, modeKey: MatchModeKey): string {

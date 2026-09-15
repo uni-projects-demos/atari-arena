@@ -1,5 +1,7 @@
 import {
+  type Context,
   createContext,
+  type JSX,
   type ReactNode,
   useCallback,
   useContext,
@@ -22,6 +24,31 @@ interface i18n {
 
 const STORAGE_KEY: string = "ui-locale";
 const FALLBACK_LOCALE: string = "en";
+const RTL_LOCALES: Set<string> = new Set([
+  "ar",
+  "arc",
+  "hbo",
+  "syc",
+  "ckb",
+  "dv",
+  "fa",
+  "he",
+  "ks",
+  "ps",
+  "sam",
+  "sd",
+  "ug",
+  "ur",
+  "yi",
+]);
+const LOCALE_ALIASES: Record<string, string> = {
+  ay: "ayr",
+  in: "id",
+  iw: "he",
+  nb: "no",
+  nn: "no",
+  tl: "fil",
+};
 
 const storage = {
   get: (key: string): string | null => {
@@ -43,7 +70,8 @@ const i18nDict: Record<string, Translations> = import.meta.glob<Translations>(".
   import: "default",
 });
 
-const norm = (locale: string): string => locale.toLowerCase().replaceAll("_", "-");
+const norm: (locale: string) => string = (locale: string): string =>
+  locale.toLowerCase().replaceAll("_", "-");
 
 const translations: Map<string, Translations> = new Map<string, Translations>();
 const localeLookup: Map<string, string> = new Map<string, string>();
@@ -60,7 +88,8 @@ const fallbackTranslations: Translations = translations.get(FALLBACK_LOCALE) ?? 
 function resolveLocale(locale?: string | null): string | null {
   if (!locale) return null;
   const key: string = norm(locale);
-  return localeLookup.get(key) ?? localeLookup.get(key.split("-")[0]) ?? null;
+  const base: string = key.split("-")[0];
+  return localeLookup.get(key) ?? localeLookup.get(base) ?? LOCALE_ALIASES[base] ?? null;
 }
 
 export function initialLocale(): string {
@@ -94,9 +123,9 @@ function initTranslator(locale: string): Translate {
   };
 }
 
-const i18nContext = createContext<i18n | null>(null);
+const i18nContext: Context<i18n | null> = createContext<i18n | null>(null);
 
-export function I18nProvider({ children }: { children: ReactNode }) {
+export function I18nProvider({ children }: { children: ReactNode }): JSX.Element {
   const [locale, setLocaleState] = useState(initialLocale);
   const setLocale: (candidate: string) => void = useCallback((candidate: string): void => {
     const matched: string | null = resolveLocale(candidate);
@@ -105,11 +134,27 @@ export function I18nProvider({ children }: { children: ReactNode }) {
 
   useEffect((): void => {
     document.documentElement.lang = locale;
+    document.documentElement.dir = RTL_LOCALES.has(locale) ? "rtl" : "ltr";
     storage.set(STORAGE_KEY, locale);
   }, [locale]);
 
+  useEffect((): (() => void) => {
+    const syncLocale: (event: StorageEvent) => void = (event: StorageEvent): void => {
+      if (event.key !== STORAGE_KEY && event.key !== null) return;
+      const matched: string | null = resolveLocale(storage.get(STORAGE_KEY));
+      setLocaleState(matched ?? FALLBACK_LOCALE);
+    };
+    window.addEventListener("storage", syncLocale);
+    return (): void => window.removeEventListener("storage", syncLocale);
+  }, []);
+
   const value: i18n = useMemo<i18n>(
-    () => ({
+    (): {
+      locale: string;
+      locales: string[];
+      setLocale: (candidate: string) => void;
+      t: (key: string, vals?: TranslateVals, fallback?: string) => string;
+    } => ({
       locale,
       locales: availableLocales,
       setLocale,

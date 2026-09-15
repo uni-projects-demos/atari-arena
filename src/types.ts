@@ -1,5 +1,14 @@
-export type MatchModeKey = "user" | "game";
-export type UserControlDir = "up" | "down" | "fire" | "none";
+export type MatchModeKey = string;
+export type MatchSide = "model" | "user" | "game";
+export type UserControlDir =
+  | "up"
+  | "down"
+  | "left"
+  | "right"
+  | "fire"
+  | "up_fire"
+  | "down_fire"
+  | "none";
 
 interface MatchLabels {
   left_label: string;
@@ -14,11 +23,19 @@ export interface NamedEntity {
 export interface ModelInfo extends NamedEntity {
   uploaded: boolean;
   default: boolean;
+  default_model_ii?: boolean;
 }
 
 export interface UserControls {
   move: string | null;
   fire: string | null;
+}
+
+export interface PlayerSlot {
+  key: string;
+  player_type: "human" | "model";
+  mirror?: boolean;
+  side?: "left" | "right" | null;
 }
 
 export interface MatchMode extends MatchLabels {
@@ -27,6 +44,7 @@ export interface MatchMode extends MatchLabels {
   user_controls: UserControls | null;
   available: boolean;
   error: string | null;
+  players?: PlayerSlot[];
 }
 
 export interface GameInfo {
@@ -35,11 +53,15 @@ export interface GameInfo {
   description: string;
   modes: MatchMode[];
   models: ModelInfo[];
+  max_players?: number;
+  supports_multiplayer?: boolean;
 }
 
 export interface ModeCatalog {
   key: MatchModeKey;
   playableGames: number;
+  left: MatchSide;
+  right: MatchSide;
 }
 
 export interface ResCatalog {
@@ -58,7 +80,12 @@ export type MsgClient =
       game: string;
       mode: MatchModeKey;
       profile: "auto";
-      model: string;
+      model?: string;
+      players?: {
+        slot: string;
+        type: "human" | "model";
+        model?: string;
+      }[];
       fps: number;
     }
   | { type: "input"; direction: UserControlDir }
@@ -73,6 +100,22 @@ export interface MsgFrame extends MatchLabels {
   steps: number;
   model_action: number;
   model_action_name: string;
+  player_actions?: Record<string, number>;
+  player_action_names?: Record<string, string>;
 }
 
-export type MsgServer = { type: "started" } | { type: "error"; message?: string } | MsgFrame;
+export type MsgServer =
+  | {
+      type: "started";
+      game?: string;
+      mode?: MatchModeKey;
+      profile?: string;
+      players?: {
+        slot: string;
+        type: "human" | "model";
+        model?: string | null;
+        side?: "left" | "right" | null;
+      }[];
+    }
+  | { type: "error"; message?: string }
+  | MsgFrame;

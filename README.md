@@ -1,6 +1,6 @@
 # Atari Model Arena UI
 
-Web UI for testing trained models against classic Atari game engines and, when supported, users.
+Web UI for testing trained models against Atari game engines and, when supported, users and other models.
 
 ## Requirements
 
@@ -33,5 +33,5 @@ npm run preview
 Before making a Pull Request, ensure it addresses an Issue, and verify the branch passes:
 
 ```bash
-npm run check:all
+npm run verify:fix
 ```

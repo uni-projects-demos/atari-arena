@@ -1,6 +1,18 @@
 import { Application, BufferImageSource, type Renderer, Sprite, Texture } from "pixi.js";
-import { forwardRef, type ReactNode, useEffect, useImperativeHandle, useRef } from "react";
-import type { MsgFrame, MsgServer } from "./types";
+import {
+  type ForwardedRef,
+  type ForwardRefExoticComponent,
+  forwardRef,
+  type JSX,
+  type ReactNode,
+  type RefAttributes,
+  type RefObject,
+  useEffect,
+  useImperativeHandle,
+  useRef,
+} from "react";
+import type { MsgFrame, MsgServer } from "@/types";
+import { type PaddleColors, stylePongFrame } from "./gamePong";
 
 const DEFAULT_WIDTH: number = 160;
 const DEFAULT_HEIGHT: number = 210;
@@ -17,6 +29,7 @@ interface TexturePoolEntry {
 
 interface GameProps {
   overlay?: ReactNode;
+  paddleColors?: PaddleColors | null;
 }
 
 export interface GameHandle {
@@ -39,6 +52,7 @@ export class ViewportManager {
   private width: number = DEFAULT_WIDTH;
   private height: number = DEFAULT_HEIGHT;
   private isDestroyed: boolean = false;
+  private paddleColors: PaddleColors | null = null;
 
   readonly ready: Promise<void>;
 
@@ -96,6 +110,10 @@ export class ViewportManager {
     this.app.render();
   }
 
+  setPaddleColors(colors: PaddleColors | null): void {
+    this.paddleColors = colors;
+  }
+
   private destroyPool(): void {
     for (const { texture } of this.pool) {
       texture.destroy(true);
@@ -116,22 +134,29 @@ export class ViewportManager {
 
     const byteLen: number = width * height * BYTES_PER_PIXEL;
 
-    this.pool = Array.from({ length: POOL_SIZE }, () => {
-      const resource: Uint8Array<ArrayBuffer> = new Uint8Array(byteLen);
-      const source: BufferImageSource = new BufferImageSource({
-        resource,
-        width,
-        height,
-        format: "rgba8unorm",
-      });
-      source.scaleMode = "nearest";
+    this.pool = Array.from(
+      { length: POOL_SIZE },
+      (): {
+        resource: Uint8Array<ArrayBuffer>;
+        source: BufferImageSource;
+        texture: Texture<BufferImageSource>;
+      } => {
+        const resource: Uint8Array<ArrayBuffer> = new Uint8Array(byteLen);
+        const source: BufferImageSource = new BufferImageSource({
+          resource,
+          width,
+          height,
+          format: "rgba8unorm",
+        });
+        source.scaleMode = "nearest";
 
-      return {
-        resource,
-        source,
-        texture: new Texture({ source }),
-      };
-    });
+        return {
+          resource,
+          source,
+          texture: new Texture({ source }),
+        };
+      },
+    );
 
     this.resize();
   }
@@ -154,6 +179,9 @@ export class ViewportManager {
 
     const entry: TexturePoolEntry = this.pool[this.poolIdx];
     entry.resource.set(new Uint8Array(buffer));
+    if (this.paddleColors) {
+      stylePongFrame(entry.resource, width, height, this.paddleColors);
+    }
     entry.source.update();
 
     this.sprite.texture = entry.texture;
@@ -167,7 +195,7 @@ export class ViewportManager {
 
     socket.binaryType = "arraybuffer";
 
-    const onMsg = (event: MessageEvent): void => {
+    const onMsg: (event: MessageEvent) => void = (event: MessageEvent): void => {
       if (typeof event.data === "string") {
         const msg: MsgServer = JSON.parse(event.data) as MsgServer;
         if (msg.type === "frame") {
@@ -225,9 +253,15 @@ export class ViewportManager {
   }
 }
 
-export const Game = forwardRef<GameHandle, GameProps>(function PixiGame({ overlay }, ref) {
-  const hostRef = useRef<HTMLDivElement>(null);
-  const managerRef = useRef<ViewportManager>(null);
+export const Game: ForwardRefExoticComponent<GameProps & RefAttributes<GameHandle>> = forwardRef<
+  GameHandle,
+  GameProps
+>(function PixiGame(
+  { overlay, paddleColors }: GameProps,
+  ref: ForwardedRef<GameHandle>,
+): JSX.Element {
+  const hostRef: RefObject<HTMLDivElement | null> = useRef<HTMLDivElement>(null);
+  const managerRef: RefObject<ViewportManager | null> = useRef<ViewportManager>(null);
 
   useEffect((): (() => void) | undefined => {
     const host: HTMLDivElement | null = hostRef.current;
@@ -241,9 +275,17 @@ export const Game = forwardRef<GameHandle, GameProps>(function PixiGame({ overla
     };
   }, []);
 
+  useEffect((): void => {
+    managerRef.current?.setPaddleColors(paddleColors ?? null);
+  }, [paddleColors]);
+
   useImperativeHandle(
     ref,
-    () => ({
+    (): {
+      clear: () => void;
+      attachSocket: (socket: WebSocket, onJson: HandlerJSON) => (() => void) | null;
+      detachSocket: () => void;
+    } => ({
       clear: (): void => managerRef.current?.clear(),
       attachSocket: (socket: WebSocket, onJson: HandlerJSON): (() => void) | null =>
         managerRef.current?.attachSocket(socket, onJson) ?? null,

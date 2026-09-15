@@ -5,9 +5,15 @@ export type ButtonVariant = "default" | "outline" | "secondary" | "destructive" 
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
+  ref?: React.Ref<HTMLButtonElement>;
 }
 
-export function Button({ className, variant = "default", type = "button", ...props }: ButtonProps) {
+export function Button({
+  className,
+  variant = "default",
+  type = "button",
+  ...props
+}: ButtonProps): React.JSX.Element {
   return (
     <button
       type={type}

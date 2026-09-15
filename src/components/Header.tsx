@@ -1,5 +1,7 @@
+import { type JSX, type RefObject, useRef, useState } from "react";
 import { useI18n } from "@/i18n";
 import { GitHubMarkIcon, GlobeIcon, HeaderIcon, MoonIcon, SunIcon } from "./icons";
+import LangDialog from "./LangDialog";
 import { Button } from "./ui/button";
 
 export type ThemeMode = "dark" | "light";
@@ -20,79 +22,86 @@ export default function Header({
   arenaRunning,
   onBack,
   onToggleTheme,
-}: HeaderProps) {
-  const { t, locale, locales, setLocale } = useI18n();
-
-  const canSwitchLocale: boolean = locales.length > 1;
-
-  const languageLabel: string = t(
-    canSwitchLocale ? "i18n.switchLanguage" : "i18n.currentLanguage",
-    {
-      locale: locale.toUpperCase(),
-    },
-  );
-
+}: HeaderProps): JSX.Element {
+  const { t, locale } = useI18n();
+  const langDialogRef: RefObject<HTMLDialogElement | null> = useRef<HTMLDialogElement>(null);
+  const langButtonRef: RefObject<HTMLButtonElement | null> = useRef<HTMLButtonElement>(null);
+  const [isLangOpen, setIsLangOpen] = useState(false);
+  const langLabel: string = t("i18n.language");
   const themeLabel: string = t(theme === "dark" ? "theme.switchToLight" : "theme.switchToDark");
-
-  const cycleLocale = (): void => {
-    if (!canSwitchLocale) return;
-
-    const index: number = locales.indexOf(locale);
-
-    setLocale(locales[(index + 1) % locales.length]);
+  const openLangDialog: () => void = (): void => {
+    setIsLangOpen(true);
+    langDialogRef.current?.showModal();
   };
 
   return (
-    <div className="header-actions" role="toolbar" aria-label={t("header.actions")}>
-      {activeGame && (
+    <>
+      <div className="header-actions" role="toolbar" aria-label={t("header.actions")}>
+        {activeGame && (
+          <Button
+            type="button"
+            variant="outline"
+            className="arena-back-header"
+            onClick={onBack}
+            disabled={arenaRunning}
+          >
+            {t("arena.back")}
+          </Button>
+        )}
+
         <Button
           type="button"
           variant="outline"
-          className="arena-back-header"
-          onClick={onBack}
-          disabled={arenaRunning}
+          className="header-action theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={themeLabel}
+          title={themeLabel}
         >
-          {t("arena.back")}
+          <HeaderIcon>{theme === "dark" ? <SunIcon /> : <MoonIcon />}</HeaderIcon>
         </Button>
-      )}
 
-      <Button
-        type="button"
-        variant="outline"
-        className="header-action theme-toggle"
-        onClick={onToggleTheme}
-        aria-label={themeLabel}
-        title={themeLabel}
-      >
-        <HeaderIcon>{theme === "dark" ? <SunIcon /> : <MoonIcon />}</HeaderIcon>
-      </Button>
+        <Button
+          ref={langButtonRef}
+          type="button"
+          variant="outline"
+          className="header-action locale-toggle"
+          onClick={openLangDialog}
+          aria-label={langLabel}
+          title={langLabel}
+          aria-expanded={isLangOpen}
+          aria-controls="language-dialog"
+          aria-haspopup="dialog"
+        >
+          <HeaderIcon>
+            <GlobeIcon />
+          </HeaderIcon>
+          <span className="locale-code" translate="no">
+            {locale.toUpperCase()}
+          </span>
+        </Button>
 
-      <Button
-        type="button"
-        variant="outline"
-        className="header-action locale-toggle"
-        disabled={!canSwitchLocale}
-        onClick={cycleLocale}
-        aria-label={languageLabel}
-        title={languageLabel}
-      >
-        <HeaderIcon>
-          <GlobeIcon />
-        </HeaderIcon>
-      </Button>
+        <a
+          className="ui-button ui-button--outline header-action repository-link"
+          href={REPO_URL}
+          target="_blank"
+          rel="noreferrer noopener"
+          aria-label={t("repository.open")}
+          title={t("repository.open")}
+        >
+          <HeaderIcon>
+            <GitHubMarkIcon />
+          </HeaderIcon>
+        </a>
+      </div>
 
-      <a
-        className="ui-button ui-button--outline header-action repository-link"
-        href={REPO_URL}
-        target="_blank"
-        rel="noreferrer noopener"
-        aria-label={t("repository.open")}
-        title={t("repository.open")}
-      >
-        <HeaderIcon>
-          <GitHubMarkIcon />
-        </HeaderIcon>
-      </a>
-    </div>
+      <LangDialog
+        dialogRef={langDialogRef}
+        isOpen={isLangOpen}
+        onClose={(): void => {
+          setIsLangOpen(false);
+          langButtonRef.current?.focus();
+        }}
+      />
+    </>
   );
 }

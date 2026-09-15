@@ -1,20 +1,24 @@
-import { type ChangeEvent, type RefObject, useEffect, useRef, useState } from "react";
+import { type ChangeEvent, type JSX, type RefObject, useEffect, useRef, useState } from "react";
 import { urlWebSocket } from "@/backend";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Game, type GameHandle } from "@/game";
+import { Game, type GameHandle } from "@/game/game";
 import { type Translate, useI18n } from "@/i18n";
 import { loadModelRequest, uploadModelRequest } from "@/lib/api";
+import { modeSides, sideLabelKey, sortSides } from "@/lib/modes";
 import { buildURL, DEFAULT_MODE } from "@/lib/routing";
 import type {
   GameInfo,
   MatchMode,
   MatchModeKey,
+  MatchSide,
   ModelInfo,
   MsgClient,
   MsgServer,
+  NamedEntity,
+  PlayerSlot,
   ResCatalog,
   UserControlDir,
 } from "@/types";
@@ -28,6 +32,9 @@ type UploadNotice =
   | { kind: "error"; message: string }
   | null;
 
+type ModelSlotKey = "I" | "II";
+type PlayerTone = "green" | "blue";
+
 interface Telemetry {
   leftScore: number;
   rightScore: number;
@@ -35,6 +42,8 @@ interface Telemetry {
   rightLabel: string;
   steps: number;
   action: string;
+  leftAction: string;
+  rightAction: string;
 }
 
 interface ArenaPageProps {
@@ -49,8 +58,12 @@ interface ArenaPageProps {
 const KEY_DIRECTIONS: Partial<Record<string, UserControlDir>> = {
   arrowup: "up",
   arrowdown: "down",
+  arrowleft: "left",
+  arrowright: "right",
   w: "up",
   s: "down",
+  a: "left",
+  d: "right",
   " ": "fire",
 };
 
@@ -58,10 +71,19 @@ function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function preferredModel(models: ModelInfo[]): ModelInfo | null {
+function preferredModel(models: ModelInfo[], slot: ModelSlotKey = "I"): ModelInfo | null {
   return (
-    models.find(({ default: isDefault }: ModelInfo): boolean => isDefault) ?? models[0] ?? null
+    (slot === "II"
+      ? models.find(({ default_model_ii: isDefault }: ModelInfo): boolean => isDefault === true)
+      : null) ??
+    models.find(({ default: isDefault }: ModelInfo): boolean => isDefault) ??
+    models[0] ??
+    null
   );
+}
+
+function modelDisplayName(model: ModelInfo): string {
+  return model.name.replace(/\s*[·•]\s*default\s*$/i, "").trim();
 }
 
 function initialMode(game: GameInfo, requestedMode: MatchModeKey | null): MatchMode | null {
@@ -87,7 +109,33 @@ function initialTelemetry(mode: MatchMode | null): Telemetry {
     rightLabel: mode?.right_label ?? "RIGHT",
     steps: 0,
     action: "—",
+    leftAction: "—",
+    rightAction: "—",
   };
+}
+
+function modelPlayerCount(mode: MatchMode | null): number {
+  if (!mode) return 0;
+  if (mode.players) {
+    return mode.players.filter(({ player_type }: PlayerSlot): boolean => player_type === "model")
+      .length;
+  }
+  const sides: { left: MatchSide; right: MatchSide } = modeSides(mode);
+  return Number(sides.left === "model") + Number(sides.right === "model");
+}
+
+function modelReadyStatus(
+  mode: MatchMode | null,
+  modelIds: Record<ModelSlotKey, string | null>,
+  loadedModelIds: Set<string>,
+): "idle" | "noModel" {
+  const modelCount: number = modelPlayerCount(mode);
+  if (modelCount === 0) return "idle";
+
+  const isReadyModelI: boolean = Boolean(modelIds.I && loadedModelIds.has(modelIds.I));
+  const isReadyModelII: boolean =
+    modelCount < 2 || Boolean(modelIds.II && loadedModelIds.has(modelIds.II));
+  return isReadyModelI && isReadyModelII ? "idle" : "noModel";
 }
 
 function formatScore(value: number): string {
@@ -96,6 +144,22 @@ function formatScore(value: number): string {
 
 function localizedScoreLabel(label: string, t: Translate): string {
   return t(`score.${label.toLowerCase()}`, undefined, label);
+}
+
+function modelSlotForSide(mode: MatchMode | null, side: "left" | "right"): string | null {
+  return (
+    mode?.players?.find(
+      ({ player_type, side: slotSide }: PlayerSlot): boolean =>
+        player_type === "model" && slotSide === side,
+    )?.key ?? null
+  );
+}
+
+function playerActionText(message: Extract<MsgServer, { type: "frame" }>, slot: string): string {
+  const action: number | undefined = message.player_actions?.[slot];
+  const actionName: string | undefined = message.player_action_names?.[slot];
+  if (actionName === undefined && action === undefined) return "—";
+  return `${actionName ?? String(action)}${action === undefined ? "" : ` (${action})`}`;
 }
 
 function uploadNoticeTxt(notice: UploadNotice, t: Translate): string {
@@ -129,6 +193,83 @@ function closeSocket(ref: RefObject<WebSocket | null>, notify = true): void {
   ref.current = null;
 }
 
+interface ModelSectionProps {
+  label: string;
+  tone?: PlayerTone;
+  activeModel: ModelInfo | null;
+  isLoaded: boolean;
+  isLoading: boolean;
+  isDisabled: boolean;
+  uploadFile: File | null;
+  uploadNotice: UploadNotice;
+  onLoad: () => void;
+  onFileChange: (file: File | null) => void;
+  onUpload: () => void;
+  t: Translate;
+  isBackEndAvailable: boolean;
+}
+
+function ModelSection({
+  label,
+  tone,
+  activeModel,
+  isLoaded,
+  isLoading,
+  isDisabled,
+  uploadFile,
+  uploadNotice,
+  onLoad,
+  onFileChange,
+  onUpload,
+  t,
+  isBackEndAvailable,
+}: ModelSectionProps): JSX.Element {
+  const toneClass: string = tone ? ` model-section--${tone}` : "";
+
+  return (
+    <div className={`model-section${toneClass}`}>
+      <div className="model-block">
+        <span className="field-label mode-toggle-label model-section-label">{label}</span>
+
+        <div className="model-value-row">
+          <div className="model-name">
+            {activeModel ? modelDisplayName(activeModel) : t("arena.noTrainedModel")}
+          </div>
+
+          <Button
+            variant="outline"
+            disabled={!isBackEndAvailable || !activeModel || isDisabled || isLoaded}
+            onClick={onLoad}
+          >
+            {isLoading ? t("status.loading") : isLoaded ? t("arena.loaded") : t("arena.load")}
+          </Button>
+        </div>
+      </div>
+
+      <div className="upload-block">
+        <Input
+          type="file"
+          accept=".pt,.pth,.zip"
+          disabled={!isBackEndAvailable || isDisabled}
+          onChange={(event: ChangeEvent<HTMLInputElement>): void =>
+            onFileChange(event.target.files?.[0] ?? null)
+          }
+        />
+
+        <Button
+          variant="outline"
+          disabled={!isBackEndAvailable || isDisabled || !uploadFile}
+          onClick={onUpload}
+        >
+          {t("arena.uploadAndUseModel")}
+        </Button>
+
+        {uploadNotice && <p className="muted compact">{uploadNoticeTxt(uploadNotice, t)}</p>}
+      </div>
+    </div>
+  );
+}
+
 export default function ArenaPage({
   game,
   requestedMode,
@@ -136,39 +277,96 @@ export default function ArenaPage({
   onCatalogRefresh,
   isBackEndAvailable,
   onRunningChange,
-}: ArenaPageProps) {
+}: ArenaPageProps): JSX.Element {
   const { t } = useI18n();
   const firstMode: MatchMode | null = initialMode(game, requestedMode);
+  const firstIdModelI: string | null = preferredModel(game.models, "I")?.id ?? null;
+  const firstIdModelII: string | null = preferredModel(game.models, "II")?.id ?? null;
 
   const [modeKey, setModeKey] = useState<MatchModeKey | null>(firstMode?.key ?? null);
-  const [activeModelId, setActiveModelId] = useState<string | null>(
-    preferredModel(game.models)?.id ?? null,
+  const [activeModelIds, setActiveModelIds] = useState<Record<ModelSlotKey, string | null>>({
+    I: firstIdModelI,
+    II: firstIdModelII,
+  });
+  const [loadedModelIds, setLoadedModelIds] = useState<Set<string>>(
+    (): Set<string> => new Set<string>(),
   );
-  const [loadedModelId, setLoadedModelId] = useState<string | null>(null);
+  const [loadingSlot, setLoadingSlot] = useState<ModelSlotKey | null>(null);
   const [starting, setStarting] = useState(false);
-  const [status, setStatus] = useState<ArenaStatus>("noModel");
+  const [status, setStatus] = useState<ArenaStatus>((): "idle" | "noModel" =>
+    modelPlayerCount(firstMode) === 0 ? "idle" : "noModel",
+  );
   const [errorMessage, setErrorMessage] = useState("");
   const [fps, setFps] = useState(20);
-  const [uploadNotice, setUploadNotice] = useState<UploadNotice>(null);
-  const [uploadFile, setUploadFile] = useState<File | null>(null);
+  const [uploadNotices, setUploadNotices] = useState<Record<ModelSlotKey, UploadNotice>>({
+    I: null,
+    II: null,
+  });
+  const [uploadFiles, setUploadFiles] = useState<Record<ModelSlotKey, File | null>>({
+    I: null,
+    II: null,
+  });
   const [telemetry, setTelemetry] = useState((): Telemetry => initialTelemetry(firstMode));
 
-  const wsRef = useRef<WebSocket | null>(null);
-  const pixiRef = useRef<GameHandle | null>(null);
-  const viewportDetachRef = useRef<(() => void) | null>(null);
+  const wsRef: RefObject<WebSocket | null> = useRef<WebSocket | null>(null);
+  const pixiRef: RefObject<GameHandle | null> = useRef<GameHandle | null>(null);
+  const viewportDetachRef: RefObject<(() => void) | null> = useRef<(() => void) | null>(null);
+  const pressedControlKeysRef: RefObject<Set<string>> = useRef<Set<string>>(new Set<string>());
 
   const mode: MatchMode | null =
     game.modes.find(({ key }: MatchMode): boolean => key === modeKey) ?? null;
-  const activeModel: ModelInfo | null =
-    game.models.find(({ id }: ModelInfo): boolean => id === activeModelId) ??
-    preferredModel(game.models);
+  const modeEntries: { mode: MatchMode; left: MatchSide; right: MatchSide }[] = game.modes.map(
+    (entry: MatchMode): { mode: MatchMode; left: MatchSide; right: MatchSide } => ({
+      mode: entry,
+      ...modeSides(entry),
+    }),
+  );
+  const currentSides: { left: MatchSide; right: MatchSide } = mode
+    ? modeSides(mode)
+    : { left: "model", right: "model" };
+  const leftModeOptions: MatchSide[] = sortSides(
+    modeEntries.map(({ left }: { left: MatchSide }): MatchSide => left),
+  );
+  const rightModeEntries: { mode: MatchMode; left: MatchSide; right: MatchSide }[] =
+    modeEntries.filter(({ left }: { left: MatchSide }): boolean => left === currentSides.left);
+  const rightModeOptions: MatchSide[] = sortSides(
+    rightModeEntries.map(({ right }: { right: MatchSide }): MatchSide => right),
+    "right",
+  );
+  const activeModelI: ModelInfo | null =
+    game.models.find(({ id }: ModelInfo): boolean => id === activeModelIds.I) ??
+    preferredModel(game.models, "I");
+  const activeModelII: ModelInfo | null =
+    game.models.find(({ id }: ModelInfo): boolean => id === activeModelIds.II) ??
+    preferredModel(game.models, "II");
+  const modelCount: number = modelPlayerCount(mode);
+  const isRequireModel: boolean = modelCount > 0;
+  const isModelVsModel: boolean = modelCount > 1;
+  const isSameModelMatch: boolean = Boolean(
+    isModelVsModel && activeModelI && activeModelII && activeModelI.id === activeModelII.id,
+  );
+  const selectedModelIds: Record<ModelSlotKey, string | null> = {
+    I: activeModelI?.id ?? null,
+    II: activeModelII?.id ?? null,
+  };
+  const leftTone: PlayerTone = "green";
+  const rightTone: PlayerTone = isSameModelMatch ? "green" : "blue";
 
   const isRunning: boolean = status === "playing" || status === "resetting";
   const isSessionActive: boolean = isRunning || starting;
-  const isBusy: boolean = isSessionActive || status === "loading";
-  const isModelLoaded: boolean = Boolean(activeModel && loadedModelId === activeModel.id);
-  const isPlayable: boolean = Boolean(mode?.available && activeModel);
-  const canStart: boolean = isBackEndAvailable && isPlayable && isModelLoaded && !isBusy;
+  const isUploading: boolean = Object.values(uploadNotices).some(
+    (notice: UploadNotice): boolean => notice?.kind === "uploading",
+  );
+  const isBusy: boolean =
+    isSessionActive || loadingSlot !== null || status === "loading" || isUploading;
+  const isLoadedModelI: boolean = Boolean(activeModelI && loadedModelIds.has(activeModelI.id));
+  const isLoadedModelII: boolean = Boolean(activeModelII && loadedModelIds.has(activeModelII.id));
+  const isPlayable: boolean = Boolean(
+    mode?.available && (!isRequireModel || (activeModelI && (!isModelVsModel || activeModelII))),
+  );
+  const areRequiredModelsLoaded: boolean =
+    !isRequireModel || (isLoadedModelI && (!isModelVsModel || isLoadedModelII));
+  const canStart: boolean = isBackEndAvailable && isPlayable && areRequiredModelsLoaded && !isBusy;
 
   const detachViewport: () => void = (): void => {
     viewportDetachRef.current?.();
@@ -197,36 +395,67 @@ export default function ArenaPage({
   );
 
   useEffect((): (() => void) | undefined => {
+    pressedControlKeysRef.current.clear();
     if (!mode?.is_user || !isRunning) {
       return;
     }
 
-    const handleKey = (event: KeyboardEvent, isPressed: boolean): void => {
-      const direction: UserControlDir | undefined = KEY_DIRECTIONS[event.key.toLowerCase()];
-      if (!direction) return;
+    const handleKey: (event: KeyboardEvent, isPressed: boolean) => void = (
+      event: KeyboardEvent,
+      isPressed: boolean,
+    ): void => {
+      const key: string = event.key.toLowerCase();
+      if (!KEY_DIRECTIONS[key]) return;
+
+      const pressed: Set<string> = pressedControlKeysRef.current;
+      if (isPressed) {
+        pressed.add(key);
+      } else {
+        pressed.delete(key);
+      }
+
+      const has: (...keys: string[]) => boolean = (...keys: string[]): boolean =>
+        keys.some((candidate: string): boolean => pressed.has(candidate));
+      const isUp: boolean = has("arrowup", "w");
+      const isDown: boolean = has("arrowdown", "s");
+      const isLeft: boolean = has("arrowleft", "a");
+      const isRight: boolean = has("arrowright", "d");
+      const isFire: boolean = pressed.has(" ");
+
+      let direction: UserControlDir = "none";
+      if (isFire && isUp && !isDown) direction = "up_fire";
+      else if (isFire && isDown && !isUp) direction = "down_fire";
+      else if (isFire) direction = "fire";
+      else if (isUp && !isDown) direction = "up";
+      else if (isDown && !isUp) direction = "down";
+      else if (isLeft && !isRight) direction = "left";
+      else if (isRight && !isLeft) direction = "right";
 
       const isSent: boolean = sendJSON(wsRef.current, {
         type: "input",
-        direction: isPressed ? direction : "none",
+        direction,
       });
       if (isSent) {
         event.preventDefault();
       }
     };
 
-    const keyDown = (event: KeyboardEvent): void => handleKey(event, true);
-    const keyUp = (event: KeyboardEvent): void => handleKey(event, false);
+    const keyDown: (event: KeyboardEvent) => void = (event: KeyboardEvent): void =>
+      handleKey(event, true);
+    const keyUp: (event: KeyboardEvent) => void = (event: KeyboardEvent): void =>
+      handleKey(event, false);
 
     window.addEventListener("keydown", keyDown);
     window.addEventListener("keyup", keyUp);
 
     return (): void => {
+      pressedControlKeysRef.current.clear();
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
     };
   }, [mode?.is_user, isRunning]);
 
-  const handleSocketMsg = (message: MsgServer): void => {
+  const handleSocketMsg: (message: MsgServer) => void = (message: MsgServer): void => {
     if (message.type === "started") {
       setStarting(false);
       setStatus("playing");
@@ -246,38 +475,74 @@ export default function ArenaPage({
         current === "resetting" ? "playing" : current,
     );
 
+    const fallbackAction: string = `${message.model_action_name} (${message.model_action})`;
+    const leftModelSlot: string | null = modelSlotForSide(mode, "left");
+    const rightModelSlot: string | null = modelSlotForSide(mode, "right");
     setTelemetry({
       leftScore: message.left_score,
       rightScore: message.right_score,
       leftLabel: message.left_label,
       rightLabel: message.right_label,
       steps: message.steps,
-      action: `${message.model_action_name} (${message.model_action})`,
+      action: fallbackAction,
+      leftAction: leftModelSlot ? playerActionText(message, leftModelSlot) : fallbackAction,
+      rightAction: rightModelSlot ? playerActionText(message, rightModelSlot) : fallbackAction,
     });
   };
 
-  const loadModel: () => Promise<void> = async (): Promise<void> => {
-    if (!activeModel || isBusy || isModelLoaded) {
+  const loadModel: (slot: ModelSlotKey) => Promise<void> = async (
+    slot: ModelSlotKey,
+  ): Promise<void> => {
+    const activeModel: ModelInfo | null = slot === "I" ? activeModelI : activeModelII;
+    if (!activeModel || isBusy || loadedModelIds.has(activeModel.id)) {
       return;
     }
     setErrorMessage("");
-    setLoadedModelId(null);
+    setLoadingSlot(slot);
     setStatus("loading");
 
     try {
-      const data = await loadModelRequest(game.key, activeModel.id, t("error.modelLoad"));
-      setLoadedModelId(data.id);
-      setStatus("idle");
+      const data: NamedEntity = await loadModelRequest(
+        game.key,
+        activeModel.id,
+        t("error.modelLoad"),
+      );
+      const nextLoadedModelIds: Set<string> = new Set(loadedModelIds);
+      nextLoadedModelIds.add(data.id);
+      setLoadedModelIds(nextLoadedModelIds);
+      setLoadingSlot(null);
+      setStatus(modelReadyStatus(mode, selectedModelIds, nextLoadedModelIds));
     } catch (error) {
+      setLoadingSlot(null);
       setErrorMessage(errorText(error));
       setStatus("error");
     }
   };
 
   const start: () => void = (): void => {
-    if (!mode || !activeModel || !isModelLoaded || isBusy) {
+    if (!mode || !areRequiredModelsLoaded || isBusy) {
       return;
     }
+    if (isRequireModel && !activeModelI) return;
+    if (isModelVsModel && !activeModelII) return;
+
+    let fallbackModelIdx: number = 0;
+    const modelBySlot: (slot: {
+      player_type: "human" | "model";
+      side?: "left" | "right" | null;
+    }) => ModelInfo | null = (slot: {
+      player_type: "human" | "model";
+      side?: "left" | "right" | null;
+    }): ModelInfo | null => {
+      if (slot.player_type !== "model") return null;
+      if (!isModelVsModel) return activeModelI;
+      if (slot.side === "left") return activeModelI;
+      if (slot.side === "right") return activeModelII;
+      const selected: ModelInfo | null = fallbackModelIdx === 0 ? activeModelI : activeModelII;
+      fallbackModelIdx += 1;
+      return selected;
+    };
+
     const socket = new WebSocket(urlWebSocket("/ws/play"));
 
     wsRef.current = socket;
@@ -293,7 +558,17 @@ export default function ArenaPage({
         game: game.key,
         mode: mode.key,
         profile: "auto",
-        model: activeModel.id,
+        ...(isRequireModel && activeModelI ? { model: activeModelI.id } : {}),
+        players: mode.players?.map(
+          (slot: PlayerSlot): { slot: string; type: "human" | "model" } => {
+            const selectedModel: ModelInfo | null = modelBySlot(slot);
+            return {
+              slot: slot.key,
+              type: slot.player_type,
+              ...(selectedModel ? { model: selectedModel.id } : {}),
+            };
+          },
+        ),
         fps,
       });
     };
@@ -317,17 +592,15 @@ export default function ArenaPage({
     }
   };
 
-  const chooseMode = (nextMode: MatchMode): void => {
-    if (isSessionActive || !nextMode.available) {
+  const chooseMode: (nextMode: MatchMode) => void = (nextMode: MatchMode): void => {
+    if (isBusy || !nextMode.available) {
       return;
     }
 
     pixiRef.current?.clear();
     setModeKey(nextMode.key);
 
-    if (status === "stopped" && isModelLoaded) {
-      setStatus("idle");
-    }
+    setStatus(modelReadyStatus(nextMode, selectedModelIds, loadedModelIds));
 
     history.replaceState(
       {
@@ -341,33 +614,130 @@ export default function ArenaPage({
     setTelemetry(initialTelemetry(nextMode));
   };
 
-  const upload: () => Promise<void> = async (): Promise<void> => {
+  const chooseLeftMode: (left: MatchSide) => void = (left: MatchSide): void => {
+    const candidates: { mode: MatchMode; left: MatchSide; right: MatchSide }[] = modeEntries.filter(
+      (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+        entry.left === left,
+    );
+    const next: { mode: MatchMode; left: MatchSide; right: MatchSide } =
+      candidates.find(
+        (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+          entry.right === currentSides.right && entry.mode.available,
+      ) ??
+      candidates.find(
+        (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+          entry.mode.available,
+      ) ??
+      candidates.find(
+        (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+          entry.right === currentSides.right,
+      ) ??
+      candidates[0];
+    if (next) chooseMode(next.mode);
+  };
+
+  const chooseRightMode: (right: MatchSide) => void = (right: MatchSide): void => {
+    const next: { mode: MatchMode; left: MatchSide; right: MatchSide } | undefined =
+      rightModeEntries.find(
+        (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+          entry.right === right,
+      );
+    if (next) chooseMode(next.mode);
+  };
+
+  const upload: (slot: ModelSlotKey) => Promise<void> = async (
+    slot: ModelSlotKey,
+  ): Promise<void> => {
+    const uploadFile: File | null = uploadFiles[slot];
     if (!uploadFile || isBusy) {
       return;
     }
-    setUploadNotice({ kind: "uploading" });
+    setErrorMessage("");
+    setLoadingSlot(slot);
+    setStatus("loading");
+    setUploadNotices(
+      (
+        current: Record<ModelSlotKey, UploadNotice>,
+      ): {
+        I:
+          | { kind: "uploading" }
+          | { kind: "using"; name: string }
+          | { kind: "error"; message: string }
+          | null;
+        II:
+          | { kind: "uploading" }
+          | { kind: "using"; name: string }
+          | { kind: "error"; message: string }
+          | null;
+      } => ({ ...current, [slot]: { kind: "uploading" } }),
+    );
 
     try {
-      const data = await uploadModelRequest(uploadFile, game.key, t("error.upload"));
+      const data: NamedEntity = await uploadModelRequest(uploadFile, game.key, t("error.upload"));
       const catalog: ResCatalog = await onCatalogRefresh();
       const uploadedId: string =
         catalog.games
           .find(({ key }: GameInfo): boolean => key === game.key)
           ?.models.find(({ id }: ModelInfo): boolean => id === data.id)?.id ?? data.id;
 
-      setActiveModelId(uploadedId);
-      setLoadedModelId(uploadedId);
-      setStatus("idle");
+      const nextModelIds: Record<ModelSlotKey, string | null> = {
+        ...selectedModelIds,
+        [slot]: uploadedId,
+      };
+      const nextLoadedModelIds: Set<string> = new Set(loadedModelIds);
+      nextLoadedModelIds.add(uploadedId);
+      setActiveModelIds(nextModelIds);
+      setLoadedModelIds(nextLoadedModelIds);
+      setLoadingSlot(null);
+      setStatus(modelReadyStatus(mode, nextModelIds, nextLoadedModelIds));
 
-      setUploadNotice({
-        kind: "using",
-        name: data.name,
-      });
+      setUploadNotices(
+        (
+          current: Record<ModelSlotKey, UploadNotice>,
+        ): {
+          I:
+            | { kind: "uploading" }
+            | { kind: "using"; name: string }
+            | { kind: "error"; message: string }
+            | null;
+          II:
+            | { kind: "uploading" }
+            | { kind: "using"; name: string }
+            | { kind: "error"; message: string }
+            | null;
+        } => ({
+          ...current,
+          [slot]: {
+            kind: "using",
+            name: data.name,
+          },
+        }),
+      );
     } catch (error) {
-      setUploadNotice({
-        kind: "error",
-        message: errorText(error),
-      });
+      setLoadingSlot(null);
+      setStatus("error");
+      setUploadNotices(
+        (
+          current: Record<ModelSlotKey, UploadNotice>,
+        ): {
+          I:
+            | { kind: "uploading" }
+            | { kind: "using"; name: string }
+            | { kind: "error"; message: string }
+            | null;
+          II:
+            | { kind: "uploading" }
+            | { kind: "using"; name: string }
+            | { kind: "error"; message: string }
+            | null;
+        } => ({
+          ...current,
+          [slot]: {
+            kind: "error",
+            message: errorText(error),
+          },
+        }),
+      );
     }
   };
 
@@ -388,61 +758,142 @@ export default function ArenaPage({
         <Card className="controls-card">
           <CardContent className="controls-stack controls-stack-clean">
             <fieldset className="mode-toggle-block">
-              <legend className="field-label mode-toggle-label">{t("mode.modelVs")}</legend>
+              <legend className="field-label mode-toggle-label">{t("mode.title")}</legend>
 
-              <div className="arena-mode-buttons">
-                {game.modes.map((entry: MatchMode) => (
-                  <Button
-                    key={entry.key}
-                    variant={entry.key === modeKey ? "default" : "outline"}
-                    disabled={isSessionActive || !entry.available}
-                    onClick={(): void => chooseMode(entry)}
-                    aria-pressed={entry.key === modeKey}
-                  >
-                    {t(entry.is_user ? "mode.user" : "mode.game")}
-                  </Button>
-                ))}
+              <div className="mode-select-row arena-mode-select-row">
+                <label className="sr-only" htmlFor="arena-mode-left">
+                  {t("mode.left")}
+                </label>
+                <select
+                  id="arena-mode-left"
+                  className="mode-select"
+                  value={currentSides.left}
+                  disabled={isSessionActive}
+                  onChange={(event: ChangeEvent<HTMLSelectElement>): void =>
+                    chooseLeftMode(event.target.value as MatchSide)
+                  }
+                >
+                  {leftModeOptions.map((side: MatchSide): JSX.Element => {
+                    const canUse: boolean = modeEntries.some(
+                      (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+                        entry.left === side && entry.mode.available,
+                    );
+                    return (
+                      <option key={side} value={side} disabled={!canUse}>
+                        {t(sideLabelKey(side))}
+                      </option>
+                    );
+                  })}
+                </select>
+
+                <span className="mode-vs" aria-hidden="true">
+                  {t("mode.vs")}
+                </span>
+
+                <label className="sr-only" htmlFor="arena-mode-right">
+                  {t("mode.right")}
+                </label>
+                <select
+                  id="arena-mode-right"
+                  className="mode-select"
+                  value={currentSides.right}
+                  disabled={isSessionActive}
+                  onChange={(event: ChangeEvent<HTMLSelectElement>): void =>
+                    chooseRightMode(event.target.value as MatchSide)
+                  }
+                >
+                  {rightModeOptions.map((side: MatchSide): JSX.Element => {
+                    const entry:
+                      | { mode: MatchMode; left: MatchSide; right: MatchSide }
+                      | undefined = rightModeEntries.find(
+                      (candidate: {
+                        mode: MatchMode;
+                        left: MatchSide;
+                        right: MatchSide;
+                      }): boolean => candidate.right === side,
+                    );
+                    return (
+                      <option key={side} value={side} disabled={!entry?.mode.available}>
+                        {t(sideLabelKey(side))}
+                      </option>
+                    );
+                  })}
+                </select>
               </div>
             </fieldset>
 
-            <div className="model-block">
-              <span className="field-label mode-toggle-label">{t("arena.trainedModel")}</span>
+            {isModelVsModel ? (
+              <div className="model-versus-stack">
+                <ModelSection
+                  label={t("arena.modelI")}
+                  tone={leftTone}
+                  activeModel={activeModelI}
+                  isLoaded={isLoadedModelI}
+                  isLoading={loadingSlot === "I"}
+                  isDisabled={isBusy}
+                  uploadFile={uploadFiles.I}
+                  uploadNotice={uploadNotices.I}
+                  onLoad={(): void => void loadModel("I")}
+                  onFileChange={(file: File | null): void =>
+                    setUploadFiles(
+                      (
+                        current: Record<ModelSlotKey, File | null>,
+                      ): { I: File | null; II: File | null } => ({ ...current, I: file }),
+                    )
+                  }
+                  onUpload={(): void => void upload("I")}
+                  t={t}
+                  isBackEndAvailable={isBackEndAvailable}
+                />
 
-              <div className="model-value-row">
-                <div className="model-value">
-                  <b>{activeModel?.name ?? t("arena.noTrainedModel")}</b>
+                <div className="model-versus-divider" aria-hidden="true">
+                  {t("mode.vs")}
                 </div>
 
-                <Button
-                  variant="outline"
-                  disabled={!isBackEndAvailable || !activeModel || isBusy || isModelLoaded}
-                  onClick={loadModel}
-                >
-                  {t("arena.load")}
-                </Button>
+                <ModelSection
+                  label={t("arena.modelII")}
+                  tone={rightTone}
+                  activeModel={activeModelII}
+                  isLoaded={isLoadedModelII}
+                  isLoading={loadingSlot === "II"}
+                  isDisabled={isBusy}
+                  uploadFile={uploadFiles.II}
+                  uploadNotice={uploadNotices.II}
+                  onLoad={(): void => void loadModel("II")}
+                  onFileChange={(file: File | null): void =>
+                    setUploadFiles(
+                      (
+                        current: Record<ModelSlotKey, File | null>,
+                      ): { I: File | null; II: File | null } => ({ ...current, II: file }),
+                    )
+                  }
+                  onUpload={(): void => void upload("II")}
+                  t={t}
+                  isBackEndAvailable={isBackEndAvailable}
+                />
               </div>
-            </div>
-
-            <div className="upload-block">
-              <Input
-                type="file"
-                accept=".pt,.pth,.zip"
-                disabled={!isBackEndAvailable || isBusy}
-                onChange={(event: ChangeEvent<HTMLInputElement>): void =>
-                  setUploadFile(event.target.files?.[0] ?? null)
+            ) : isRequireModel ? (
+              <ModelSection
+                label={t("arena.trainedModel")}
+                activeModel={activeModelI}
+                isLoaded={isLoadedModelI}
+                isLoading={loadingSlot === "I"}
+                isDisabled={isBusy}
+                uploadFile={uploadFiles.I}
+                uploadNotice={uploadNotices.I}
+                onLoad={(): void => void loadModel("I")}
+                onFileChange={(file: File | null): void =>
+                  setUploadFiles(
+                    (
+                      current: Record<ModelSlotKey, File | null>,
+                    ): { I: File | null; II: File | null } => ({ ...current, I: file }),
+                  )
                 }
+                onUpload={(): void => void upload("I")}
+                t={t}
+                isBackEndAvailable={isBackEndAvailable}
               />
-
-              <Button
-                variant="outline"
-                disabled={!isBackEndAvailable || isBusy || !uploadFile}
-                onClick={upload}
-              >
-                {t("arena.uploadAndUseModel")}
-              </Button>
-
-              {uploadNotice && <p className="muted compact">{uploadNoticeTxt(uploadNotice, t)}</p>}
-            </div>
+            ) : null}
 
             <label className="range-field">
               <span className="field-label">
@@ -499,26 +950,76 @@ export default function ArenaPage({
         <Card className="game-card-panel">
           <CardContent className="game-stage-content">
             <div className="score-bar">
-              <div>
-                <span>{localizedScoreLabel(telemetry.leftLabel, t)}</span>
-                <strong>{formatScore(telemetry.leftScore)}</strong>
+              <div
+                className={isModelVsModel ? `score-player score-player--${leftTone}` : undefined}
+              >
+                <span>
+                  {isModelVsModel ? t("arena.modelI") : localizedScoreLabel(telemetry.leftLabel, t)}
+                </span>
+                <strong
+                  className={isModelVsModel ? `score-value score-value--${leftTone}` : undefined}
+                >
+                  {formatScore(telemetry.leftScore)}
+                </strong>
               </div>
 
               <Badge variant={isRunning ? "success" : "secondary"}>
                 {isBackEndAvailable ? t(`status.${status}`) : t("status.serverUnavailable")}
               </Badge>
 
-              <div className="score-right">
-                <span>{localizedScoreLabel(telemetry.rightLabel, t)}</span>
-                <strong>{formatScore(telemetry.rightScore)}</strong>
+              <div
+                className={`score-right${
+                  isModelVsModel ? ` score-player score-player--${rightTone}` : ""
+                }`}
+              >
+                <span>
+                  {isModelVsModel
+                    ? t("arena.modelII")
+                    : localizedScoreLabel(telemetry.rightLabel, t)}
+                </span>
+                <strong
+                  className={isModelVsModel ? `score-value score-value--${rightTone}` : undefined}
+                >
+                  {formatScore(telemetry.rightScore)}
+                </strong>
               </div>
             </div>
 
-            <Game ref={pixiRef} overlay={overlay} />
+            <Game
+              ref={pixiRef}
+              overlay={overlay}
+              paddleColors={
+                isModelVsModel && game.key === "pong" ? { left: leftTone, right: rightTone } : null
+              }
+            />
 
-            <div className="telemetry-grid telemetry-grid-compact">
-              <Stat label={t("arena.steps")} value={String(telemetry.steps)} />
-              <Stat label={t("arena.modelAction")} value={telemetry.action} />
+            <div
+              className={`telemetry-grid ${
+                isModelVsModel ? "telemetry-grid--versus" : "telemetry-grid-compact"
+              }`}
+            >
+              {isModelVsModel ? (
+                <>
+                  <Stat
+                    className={`stat--${leftTone}`}
+                    label={`${t("arena.modelI")} · ${t("arena.action", undefined, "Action")}`}
+                    value={telemetry.leftAction}
+                  />
+                  <Stat label={t("arena.steps")} value={String(telemetry.steps)} />
+                  <Stat
+                    className={`stat--${rightTone}`}
+                    label={`${t("arena.modelII")} · ${t("arena.action", undefined, "Action")}`}
+                    value={telemetry.rightAction}
+                  />
+                </>
+              ) : (
+                <>
+                  <Stat label={t("arena.steps")} value={String(telemetry.steps)} />
+                  {isRequireModel && (
+                    <Stat label={t("arena.action", undefined, "Action")} value={telemetry.action} />
+                  )}
+                </>
+              )}
             </div>
           </CardContent>
         </Card>

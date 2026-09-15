@@ -1,12 +1,20 @@
-import { useEffect, useState } from "react";
+import { type JSX, useEffect, useState } from "react";
 import { loadCatalog } from "./backend";
 import Header, { type ThemeMode } from "./components/Header";
 import { useI18n } from "./i18n";
 import { fetchCatalog } from "./lib/api";
+import { modeSides } from "./lib/modes";
 import { buildURL, DEFAULT_MODE, type RouteState, routeFromLoc } from "./lib/routing";
 import ArenaPage from "./pages/ArenaPage";
 import LandingPage from "./pages/LandingPage";
-import type { GameInfo, MatchModeKey, ModeCatalog, ResCatalog } from "./types";
+import type {
+  GameInfo,
+  MatchMode,
+  MatchModeKey,
+  MatchSide,
+  ModeCatalog,
+  ResCatalog,
+} from "./types";
 
 const STORAGE_KEY: string = "ui-theme";
 
@@ -21,13 +29,28 @@ function buildCatalogModes(games: GameInfo[]): ModeCatalog[] {
       counts.set(mode.key, (counts.get(mode.key) ?? 0) + Number(mode.available));
     }
   }
-  return Array.from(counts, ([key, playableGames]: [MatchModeKey, number]) => ({
-    key,
-    playableGames,
-  }));
+  return Array.from(counts, ([key, playableGames]: [MatchModeKey, number]): ModeCatalog => {
+    const representative: MatchMode | undefined = games
+      .flatMap((game: GameInfo): MatchMode[] => game.modes)
+      .find((mode: MatchMode): boolean => mode.key === key);
+    const sides: { left: MatchSide; right: MatchSide } = representative
+      ? modeSides(representative)
+      : key === "user"
+        ? { left: "user" as const, right: "model" as const }
+        : key === "user-game"
+          ? { left: "user" as const, right: "game" as const }
+          : key === "model"
+            ? { left: "model" as const, right: "model" as const }
+            : key === "model-user"
+              ? { left: "model" as const, right: "user" as const }
+              : key === "user-model"
+                ? { left: "user" as const, right: "model" as const }
+                : { left: "model" as const, right: "game" as const };
+    return { key, playableGames, ...sides };
+  });
 }
 
-export default function App() {
+export default function App(): JSX.Element {
   const { t } = useI18n();
   const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [info, setInfo] = useState<ResCatalog | null>(null);
@@ -79,7 +102,11 @@ export default function App() {
     return next;
   };
 
-  const nav = (gameKey: string | null, modeKey: MatchModeKey, isReplace: boolean = false): void => {
+  const nav: (gameKey: string | null, modeKey: MatchModeKey, isReplace?: boolean) => void = (
+    gameKey: string | null,
+    modeKey: MatchModeKey,
+    isReplace: boolean = false,
+  ): void => {
     const nxt: RouteState = { gameKey, modeKey };
     const url: string = buildURL(gameKey, modeKey);
     if (isReplace) {

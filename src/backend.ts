@@ -8,19 +8,20 @@ interface Catalog {
 
 const fallback: ResCatalog = fbCatalog as ResCatalog;
 
-const norm = (url: string = ""): string => url.trim().replace(/\/+$/, "");
-const url = (base: string, path: string): string =>
+const norm: (url?: string) => string = (url: string = ""): string => url.trim().replace(/\/+$/, "");
+const url: (base: string, path: string) => string = (base: string, path: string): string =>
   `${base}${path.startsWith("/") ? path : `/${path}`}`;
 
-export const urlAPI = (path: string): string => url(norm(import.meta.env.VITE_API_URL), path);
-export const urlWebSocket = (path: string): string =>
+export const urlAPI: (path: string) => string = (path: string): string =>
+  url(norm(import.meta.env.VITE_API_URL), path);
+export const urlWebSocket: (path: string) => string = (path: string): string =>
   url(norm(import.meta.env.VITE_WS_URL) || location.origin.replace(/^http/, "ws"), path);
 
 export async function loadCatalog(): Promise<Catalog> {
   try {
     const res: Response = await fetch(urlAPI("/api/info"));
     if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
+      return { info: fallback, isBackEndAvailable: false };
     }
 
     const info: ResCatalog = (await res.json()) as ResCatalog;

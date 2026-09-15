@@ -3,14 +3,42 @@
     {
       "key": "breakout",
       "label": "Atari Breakout",
-      "description": "Classic Breakout supporting model-vs-game mode.",
+      "description": "Classic Breakout supporting model-vs-game and user-vs-game modes.",
       "modes": [
         {
           "key": "game",
-          "left_label": "GAME",
-          "right_label": "MODEL",
+          "left_label": "MODEL",
+          "right_label": "GAME",
           "is_user": false,
           "user_controls": null,
+          "available": true,
+          "error": null,
+          "players": [
+            {
+              "key": "player_0",
+              "player_type": "model",
+              "mirror": false,
+              "side": "left"
+            }
+          ]
+        },
+        {
+          "key": "user-game",
+          "left_label": "USER",
+          "right_label": "GAME",
+          "is_user": true,
+          "user_controls": {
+            "move": "←/→ or A/D",
+            "fire": "SPACE"
+          },
+          "players": [
+            {
+              "key": "player_0",
+              "player_type": "human",
+              "mirror": false,
+              "side": "left"
+            }
+          ],
           "available": true,
           "error": null
         }
@@ -27,8 +55,68 @@
     {
       "key": "pong",
       "label": "Atari Pong",
-      "description": "Classic Pong supporting model-vs-user and model-vs-game mode.",
+      "description": "Classic Pong supporting model-vs-game, model-vs-model, model-vs-user, user-vs-game, and user-vs-model modes.",
       "modes": [
+        {
+          "key": "game",
+          "left_label": "MODEL",
+          "right_label": "GAME",
+          "is_user": false,
+          "user_controls": null,
+          "available": true,
+          "error": null,
+          "players": [
+            {
+              "key": "player_0",
+              "player_type": "model",
+              "mirror": false,
+              "side": "left"
+            }
+          ]
+        },
+        {
+          "key": "model",
+          "left_label": "LEFT MODEL",
+          "right_label": "RIGHT MODEL",
+          "is_user": false,
+          "user_controls": null,
+          "available": true,
+          "error": null,
+          "players": [
+            {
+              "key": "first_0",
+              "player_type": "model",
+              "mirror": true,
+              "side": "left"
+            },
+            {
+              "key": "second_0",
+              "player_type": "model",
+              "mirror": false,
+              "side": "right"
+            }
+          ]
+        },
+        {
+          "key": "user-game",
+          "left_label": "USER",
+          "right_label": "GAME",
+          "is_user": true,
+          "user_controls": {
+            "move": "↑/↓ or W/S",
+            "fire": "SPACE"
+          },
+          "players": [
+            {
+              "key": "player_0",
+              "player_type": "human",
+              "mirror": false,
+              "side": "left"
+            }
+          ],
+          "available": true,
+          "error": null
+        },
         {
           "key": "user",
           "left_label": "MODEL",
@@ -39,24 +127,62 @@
             "fire": "SPACE"
           },
           "available": true,
-          "error": null
+          "error": null,
+          "players": [
+            {
+              "key": "second_0",
+              "player_type": "model",
+              "mirror": true,
+              "side": "left"
+            },
+            {
+              "key": "first_0",
+              "player_type": "human",
+              "mirror": false,
+              "side": "right"
+            }
+          ]
         },
         {
-          "key": "game",
-          "left_label": "GAME",
+          "key": "user-model",
+          "left_label": "YOU",
           "right_label": "MODEL",
-          "is_user": false,
-          "user_controls": null,
+          "is_user": true,
+          "user_controls": {
+            "move": "↑/↓ or W/S",
+            "fire": "SPACE"
+          },
           "available": true,
-          "error": null
+          "error": null,
+          "players": [
+            {
+              "key": "first_0",
+              "player_type": "human",
+              "mirror": false,
+              "side": "left"
+            },
+            {
+              "key": "second_0",
+              "player_type": "model",
+              "mirror": false,
+              "side": "right"
+            }
+          ]
         }
       ],
       "models": [
         {
           "id": "default",
-          "name": "PongNoFrameskip-v4",
+          "name": "PongNoFrameskip-v4 DQN",
           "uploaded": false,
           "default": true
+        },
+        {
+          "id": "ppo",
+          "name": "PongNoFrameskip-v4 PPO",
+          "uploaded": false,
+          "default": false,
+          "default_model_ii": true
         }
       ]
     }

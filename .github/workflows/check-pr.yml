@@ -28,8 +28,8 @@ jobs:
       - name: Install
         run: npm ci
 
-      - name: Check
-        run: npm run check:all
+      - name: Verify
+        run: npm run verify
 
       - name: Build
         run: npm run build
