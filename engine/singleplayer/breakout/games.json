@@ -1,0 +1,196 @@
+{
+  "key": "breakout",
+  "label": "Atari Breakout",
+  "description": "Classic Atari Breakout.",
+  "rom_url": "roms/breakout.bin",
+  "action_names": ["NOOP", "FIRE", "MOVE-RIGHT", "MOVE-LEFT"],
+  "controls": [
+    {
+      "direction": "none",
+      "action": 0
+    },
+    {
+      "direction": "fire",
+      "action": 1
+    },
+    {
+      "direction": "right",
+      "action": 2
+    },
+    {
+      "direction": "left",
+      "action": 3
+    }
+  ],
+  "default_profile": "breakout-noframeskip-v4",
+  "profiles": [
+    {
+      "key": "breakout-noframeskip-v4",
+      "label": "BreakoutNoFrameskip-v4 \u00b7 Sample Factory / RL-Zoo",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.0
+    },
+    {
+      "key": "ale-breakout-v5",
+      "label": "ALE/Breakout-v5",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    }
+  ],
+  "modes": [
+    {
+      "key": "game",
+      "left_label": "GAME",
+      "right_label": "MODEL",
+      "players": [
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "model",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "user_controls": null,
+      "emulator": "ale",
+      "scoring": {
+        "kind": "signed",
+        "positive": "right",
+        "negative": "left"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": true,
+      "episodic_life": true,
+      "emulator_mode": null,
+      "max_cycles": 100000
+    },
+    {
+      "key": "user-game",
+      "left_label": "GAME",
+      "right_label": "YOU",
+      "user_controls": {
+        "move": "\u2190/\u2192 or A/D",
+        "fire": "SPACE"
+      },
+      "players": [
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "human",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "emulator": "ale",
+      "scoring": {
+        "kind": "signed",
+        "positive": "right",
+        "negative": "left"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": true,
+      "episodic_life": true,
+      "emulator_mode": null,
+      "max_cycles": 100000
+    }
+  ],
+  "models": [
+    {
+      "id": "appo",
+      "name": "Breakout APPO",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/MattStammers/appo-atari_breakout-sota/resolve/651fb3a89b76e4352e25a2a881dabcca602bb436/checkpoint_p0/checkpoint_001953136_500015104.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "4a9f53694a43bc9ce0dd0e8b980cb9d3fa0f25170a36dc08aba9f249f8822efb"
+      },
+      "n_actions": 4,
+      "profile": "breakout-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": true,
+      "default_model_ii": false
+    },
+    {
+      "id": "default",
+      "name": "BreakoutNoFrameskip-v4 PPO",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/sb3/ppo-BreakoutNoFrameskip-v4/resolve/c6da999c2175d9d0c154bab232dd1478082b63c6/ppo-BreakoutNoFrameskip-v4.zip",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sb3_ppo",
+        "sha256": "64401cc0bcdd2bd5beb003aaf8096e6d5b1bd0fe9f25c058dfca150afbd19516"
+      },
+      "n_actions": 4,
+      "profile": "breakout-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    },
+    {
+      "id": "dqn",
+      "name": "BreakoutNoFrameskip-v4 DQN",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/sb3/dqn-BreakoutNoFrameskip-v4/resolve/0086849ff5b805121a1adda76989d9ef227ff997/dqn-BreakoutNoFrameskip-v4.zip",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sb3_dqn",
+        "sha256": "570952be64241cdf30138ee386fb7cb80efc0d4d98776cc8c5e53adf415d0b0d"
+      },
+      "n_actions": 4,
+      "profile": "breakout-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": false
+    },
+    {
+      "id": "tracking",
+      "name": "Breakout tracking baseline (not a trained model)",
+      "policy": {
+        "kind": "tracking",
+        "game": "breakout"
+      },
+      "n_actions": 4,
+      "profile": "breakout-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": false
+    }
+  ]
+}

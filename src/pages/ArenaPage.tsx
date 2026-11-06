@@ -1,5 +1,5 @@
 import { type ChangeEvent, type JSX, type RefObject, useEffect, useRef, useState } from "react";
-import { urlWebSocket } from "@/backend";
+import { type GameSocket, modelFileAccept, openGameSocket } from "@/backend";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Game, type GameHandle } from "@/game/game";
 import { type Translate, useI18n } from "@/i18n";
 import { loadModelRequest, uploadModelRequest } from "@/lib/api";
+import { controlDirection, isControlKey } from "@/lib/controls";
 import { modeSides, sideLabelKey, sortSides } from "@/lib/modes";
 import { buildURL, DEFAULT_MODE } from "@/lib/routing";
 import type {
@@ -20,7 +21,6 @@ import type {
   NamedEntity,
   PlayerSlot,
   ResCatalog,
-  UserControlDir,
 } from "@/types";
 import Stat from "../components/Stat";
 
@@ -54,18 +54,6 @@ interface ArenaPageProps {
   isBackEndAvailable: boolean;
   onRunningChange: (isRunning: boolean) => void;
 }
-
-const KEY_DIRECTIONS: Partial<Record<string, UserControlDir>> = {
-  arrowup: "up",
-  arrowdown: "down",
-  arrowleft: "left",
-  arrowright: "right",
-  w: "up",
-  s: "down",
-  a: "left",
-  d: "right",
-  " ": "fire",
-};
 
 function errorText(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
@@ -177,7 +165,7 @@ function uploadNoticeTxt(notice: UploadNotice, t: Translate): string {
   }
 }
 
-function sendJSON(socket: WebSocket | null | undefined, payload: MsgClient): boolean {
+function sendJSON(socket: GameSocket | null | undefined, payload: MsgClient): boolean {
   if (socket?.readyState !== WebSocket.OPEN) {
     return false;
   }
@@ -185,7 +173,7 @@ function sendJSON(socket: WebSocket | null | undefined, payload: MsgClient): boo
   return true;
 }
 
-function closeSocket(ref: RefObject<WebSocket | null>, notify = true): void {
+function closeSocket(ref: RefObject<GameSocket | null>, notify = true): void {
   if (notify) {
     sendJSON(ref.current, { type: "stop" });
   }
@@ -249,7 +237,7 @@ function ModelSection({
       <div className="upload-block">
         <Input
           type="file"
-          accept=".pt,.pth,.zip"
+          accept={modelFileAccept}
           disabled={!isBackEndAvailable || isDisabled}
           onChange={(event: ChangeEvent<HTMLInputElement>): void =>
             onFileChange(event.target.files?.[0] ?? null)
@@ -308,7 +296,7 @@ export default function ArenaPage({
   });
   const [telemetry, setTelemetry] = useState((): Telemetry => initialTelemetry(firstMode));
 
-  const wsRef: RefObject<WebSocket | null> = useRef<WebSocket | null>(null);
+  const wsRef: RefObject<GameSocket | null> = useRef<GameSocket | null>(null);
   const pixiRef: RefObject<GameHandle | null> = useRef<GameHandle | null>(null);
   const viewportDetachRef: RefObject<(() => void) | null> = useRef<(() => void) | null>(null);
   const pressedControlKeysRef: RefObject<Set<string>> = useRef<Set<string>>(new Set<string>());
@@ -405,7 +393,7 @@ export default function ArenaPage({
       isPressed: boolean,
     ): void => {
       const key: string = event.key.toLowerCase();
-      if (!KEY_DIRECTIONS[key]) return;
+      if (!isControlKey(key)) return;
 
       const pressed: Set<string> = pressedControlKeysRef.current;
       if (isPressed) {
@@ -414,22 +402,7 @@ export default function ArenaPage({
         pressed.delete(key);
       }
 
-      const has: (...keys: string[]) => boolean = (...keys: string[]): boolean =>
-        keys.some((candidate: string): boolean => pressed.has(candidate));
-      const isUp: boolean = has("arrowup", "w");
-      const isDown: boolean = has("arrowdown", "s");
-      const isLeft: boolean = has("arrowleft", "a");
-      const isRight: boolean = has("arrowright", "d");
-      const isFire: boolean = pressed.has(" ");
-
-      let direction: UserControlDir = "none";
-      if (isFire && isUp && !isDown) direction = "up_fire";
-      else if (isFire && isDown && !isUp) direction = "down_fire";
-      else if (isFire) direction = "fire";
-      else if (isUp && !isDown) direction = "up";
-      else if (isDown && !isUp) direction = "down";
-      else if (isLeft && !isRight) direction = "left";
-      else if (isRight && !isLeft) direction = "right";
+      const direction = controlDirection(pressed, mode.user_controls?.layout);
 
       const isSent: boolean = sendJSON(wsRef.current, {
         type: "input",
@@ -453,7 +426,7 @@ export default function ArenaPage({
       window.removeEventListener("keydown", keyDown);
       window.removeEventListener("keyup", keyUp);
     };
-  }, [mode?.is_user, isRunning]);
+  }, [mode?.is_user, mode?.user_controls?.layout, isRunning]);
 
   const handleSocketMsg: (message: MsgServer) => void = (message: MsgServer): void => {
     if (message.type === "started") {
@@ -543,7 +516,7 @@ export default function ArenaPage({
       return selected;
     };
 
-    const socket = new WebSocket(urlWebSocket("/ws/play"));
+    const socket = openGameSocket();
 
     wsRef.current = socket;
     detachViewport();

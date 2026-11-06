@@ -10,6 +10,7 @@ export default defineConfig(({ mode }: ConfigEnv) => {
   return {
     base: isPages ? `/${repo}/` : "/",
     plugins: [react()],
+    worker: { format: "es" as const },
     resolve: {
       alias: {
         "@": fileURLToPath(new URL("./src", import.meta.url)),

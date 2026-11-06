@@ -1,0 +1,342 @@
+{
+  "key": "pong",
+  "label": "Atari Pong",
+  "description": "Classic Atari Pong. Supports all match modes.",
+  "rom_url": "roms/pong.bin",
+  "action_names": [
+    "NOOP",
+    "FIRE",
+    "MOVE-RIGHT",
+    "MOVE-LEFT",
+    "MOVE-RIGHT + FIRE",
+    "MOVE-LEFT + FIRE"
+  ],
+  "controls": [
+    {
+      "direction": "none",
+      "action": 0
+    },
+    {
+      "direction": "fire",
+      "action": 1
+    },
+    {
+      "direction": "right",
+      "action": 2
+    },
+    {
+      "direction": "left",
+      "action": 3
+    },
+    {
+      "direction": "up",
+      "action": 2
+    },
+    {
+      "direction": "down",
+      "action": 3
+    },
+    {
+      "direction": "up_fire",
+      "action": 4
+    },
+    {
+      "direction": "down_fire",
+      "action": 5
+    }
+  ],
+  "default_profile": "pong-noframeskip-v4",
+  "profiles": [
+    {
+      "key": "pong-v0",
+      "label": "Pong-v0",
+      "frame_skip": [2, 5],
+      "repeat_action_prob": 0.25
+    },
+    {
+      "key": "pong-noframeskip-v0",
+      "label": "PongNoFrameskip-v0",
+      "frame_skip": 1,
+      "repeat_action_prob": 0.25
+    },
+    {
+      "key": "pong-deterministic-v0",
+      "label": "PongDeterministic-v0",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    },
+    {
+      "key": "pong-v4",
+      "label": "Pong-v4",
+      "frame_skip": [2, 5],
+      "repeat_action_prob": 0.0
+    },
+    {
+      "key": "pong-noframeskip-v4",
+      "label": "PongNoFrameskip-v4 \u00b7 RL-Zoo",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.0
+    },
+    {
+      "key": "pong-deterministic-v4",
+      "label": "PongDeterministic-v4",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.0
+    },
+    {
+      "key": "ale-pong-v5",
+      "label": "ALE/Pong-v5",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    }
+  ],
+  "modes": [
+    {
+      "key": "user",
+      "left_label": "MODEL",
+      "right_label": "YOU",
+      "players": [
+        {
+          "side": "left",
+          "key": "second_0",
+          "player_type": "model",
+          "mirror": true,
+          "agent_index": 1
+        },
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "human",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "user_controls": {
+        "move": "\u2191/\u2193 or W/S",
+        "fire": "SPACE"
+      },
+      "emulator": "multi_ale",
+      "scoring": {
+        "kind": "players"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": false,
+      "episodic_life": false,
+      "emulator_mode": 4,
+      "max_cycles": 100000
+    },
+    {
+      "key": "game",
+      "left_label": "GAME",
+      "right_label": "MODEL",
+      "players": [
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "model",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "user_controls": null,
+      "emulator": "ale",
+      "scoring": {
+        "kind": "signed",
+        "positive": "right",
+        "negative": "left"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": true,
+      "episodic_life": false,
+      "emulator_mode": null,
+      "max_cycles": 100000
+    },
+    {
+      "key": "model",
+      "left_label": "MODEL",
+      "right_label": "MODEL",
+      "players": [
+        {
+          "side": "left",
+          "key": "second_0",
+          "player_type": "model",
+          "mirror": true,
+          "agent_index": 1
+        },
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "model",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "user_controls": null,
+      "emulator": "multi_ale",
+      "scoring": {
+        "kind": "players"
+      },
+      "mirror_frame": false,
+      "alternating_serve": true,
+      "reset_actions": [1, 2],
+      "random_noops": false,
+      "episodic_life": false,
+      "emulator_mode": 4,
+      "max_cycles": 100000
+    },
+    {
+      "key": "user-game",
+      "left_label": "GAME",
+      "right_label": "YOU",
+      "user_controls": {
+        "move": "\u2191/\u2193 or W/S",
+        "fire": "SPACE"
+      },
+      "players": [
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "human",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "emulator": "ale",
+      "scoring": {
+        "kind": "signed",
+        "positive": "right",
+        "negative": "left"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": true,
+      "episodic_life": false,
+      "emulator_mode": null,
+      "max_cycles": 100000
+    },
+    {
+      "key": "user-model",
+      "left_label": "YOU",
+      "right_label": "MODEL",
+      "user_controls": {
+        "move": "\u2191/\u2193 or W/S",
+        "fire": "SPACE"
+      },
+      "players": [
+        {
+          "side": "left",
+          "key": "first_0",
+          "player_type": "human",
+          "mirror": false,
+          "agent_index": 0
+        },
+        {
+          "side": "right",
+          "key": "second_0",
+          "player_type": "model",
+          "mirror": false,
+          "agent_index": 1
+        }
+      ],
+      "emulator": "multi_ale",
+      "scoring": {
+        "kind": "players"
+      },
+      "mirror_frame": true,
+      "display_unmirror_regions": [
+        {
+          "left": 0,
+          "top": 1,
+          "width": 80,
+          "height": 20
+        },
+        {
+          "left": 80,
+          "top": 1,
+          "width": 80,
+          "height": 20
+        }
+      ],
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": false,
+      "episodic_life": false,
+      "emulator_mode": 4,
+      "max_cycles": 100000
+    }
+  ],
+  "models": [
+    {
+      "id": "default",
+      "name": "PongNoFrameskip-v4 DQN",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/sb3/dqn-PongNoFrameskip-v4/resolve/f1e5c53df3ef4f893466b3da7db98e47218f0357/dqn-PongNoFrameskip-v4.zip",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sb3_dqn",
+        "sha256": "f51c07b7722c4cc890096f24ce4f17b4f2cfd6c8bb7772c52a6e7d3722833d4e"
+      },
+      "n_actions": 6,
+      "profile": "pong-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    },
+    {
+      "id": "ppo",
+      "name": "PongNoFrameskip-v4 PPO",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/sb3/ppo-PongNoFrameskip-v4/resolve/55ac4cb4184f0d529eeef49fcee3926b4a7aa4af/ppo-PongNoFrameskip-v4.zip",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sb3_ppo",
+        "sha256": "06d5581331ad801390e14f70f5ff4cdd6d8e4b347960f285ac5a3f2ff816db6d"
+      },
+      "n_actions": 6,
+      "profile": "pong-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0
+      },
+      "uploaded": false,
+      "default": true,
+      "default_model_ii": false
+    },
+    {
+      "id": "tracking",
+      "name": "Pong tracking baseline (not a trained model)",
+      "policy": {
+        "kind": "tracking",
+        "game": "pong"
+      },
+      "n_actions": 6,
+      "profile": "pong-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": false
+    }
+  ]
+}

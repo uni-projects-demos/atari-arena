@@ -1,0 +1,117 @@
+{
+  "key": "boxing",
+  "label": "Atari Boxing",
+  "description": "Classic Atari Boxing. Supports all match modes.",
+  "rom_url": "roms/boxing.bin",
+  "default_profile": "boxing-noframeskip-v4",
+  "profiles": [
+    {
+      "key": "boxing-noframeskip-v4",
+      "label": "BoxingNoFrameskip-v4 \u00b7 Sample Factory",
+      "frame_skip": 4,
+      "repeat_action_prob": 0
+    },
+    {
+      "key": "ale-boxing-v5",
+      "label": "ALE/Boxing-v5",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    }
+  ],
+  "modes": {
+    "scoring": {
+      "kind": "ram",
+      "addresses": [18, 19],
+      "encoding": "bcd",
+      "overrides": [
+        {
+          "value": 192,
+          "score": 100
+        }
+      ]
+    },
+    "user_controls": {
+      "move": "\u2191/\u2193/\u2190/\u2192 or W/A/S/D",
+      "fire": "SPACE (punch)",
+      "layout": "joystick"
+    },
+    "opponent": {
+      "key": "second_0",
+      "player_type": "model",
+      "side": "right",
+      "mirror": true,
+      "agent_index": 1,
+      "action_map": [0, 1, 2, 4, 3, 5, 7, 6, 9, 8, 10, 12, 11, 13, 15, 14, 17, 16],
+      "color_swaps": [
+        {
+          "first": [214, 214, 214],
+          "second": [0, 0, 0],
+          "region": {
+            "left": 16,
+            "top": 34,
+            "width": 128,
+            "height": 144
+          }
+        }
+      ]
+    },
+    "emulator_mode": 2,
+    "reset_actions": [],
+    "single_reset_actions": [1, 2],
+    "human_reset_actions": [1, 2]
+  },
+  "models": [
+    {
+      "id": "default",
+      "name": "Boxing APPO \u00b7 2B steps",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/edbeeching/atari_2B_atari_boxing_1111/resolve/df02fdcf78acc343bf3ee332dc74d960bdebfdd3/checkpoint_p0/checkpoint_000976624_2000125952.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "3032a340051d28f16cb1ac8bee5a4384308382523d8d3d1d3c6e989ff0458c0b"
+      },
+      "n_actions": 18,
+      "profile": "boxing-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": true,
+      "default_model_ii": false
+    },
+    {
+      "id": "best",
+      "name": "Boxing APPO \u00b7 84M steps",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/edbeeching/atari_2B_atari_boxing_1111/resolve/df02fdcf78acc343bf3ee332dc74d960bdebfdd3/checkpoint_p0/best_000041216_84410368_reward_98.480.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "e0fcb9d2ccdaf23880405a548352ee6432b9cf0641223ec5c1fd9f7906d4ce7d"
+      },
+      "n_actions": 18,
+      "profile": "boxing-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    }
+  ]
+}

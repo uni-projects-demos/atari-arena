@@ -16,5 +16,6 @@
     },
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts"],
+  "exclude": ["engine/browser/src", "engine/browser/src/generated"]
 }

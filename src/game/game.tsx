@@ -11,6 +11,7 @@ import {
   useImperativeHandle,
   useRef,
 } from "react";
+import type { GameSocket } from "@/backend";
 import type { MsgFrame, MsgServer } from "@/types";
 import { type PaddleColors, stylePongFrame } from "./gamePong";
 
@@ -34,7 +35,7 @@ interface GameProps {
 
 export interface GameHandle {
   clear: () => void;
-  attachSocket: (socket: WebSocket, onJson: HandlerJSON) => (() => void) | null;
+  attachSocket: (socket: GameSocket, onJson: HandlerJSON) => (() => void) | null;
   detachSocket: () => void;
 }
 
@@ -46,7 +47,7 @@ export class ViewportManager {
   private resizeObs: ResizeObserver | null = null;
   private sprite: Sprite | null = null;
   private socketBinding: {
-    socket: WebSocket;
+    socket: GameSocket;
     onMsg: (event: MessageEvent) => void;
   } | null = null;
   private width: number = DEFAULT_WIDTH;
@@ -190,7 +191,7 @@ export class ViewportManager {
     this.app.render();
   }
 
-  attachSocket(socket: WebSocket, onJson: HandlerJSON): () => void {
+  attachSocket(socket: GameSocket, onJson: HandlerJSON): () => void {
     this.detachSocket();
 
     socket.binaryType = "arraybuffer";
@@ -220,7 +221,7 @@ export class ViewportManager {
 
   detachSocket(): void {
     const binding: {
-      socket: WebSocket;
+      socket: GameSocket;
       onMsg: (event: MessageEvent) => void;
     } | null = this.socketBinding;
     if (!binding) return;
@@ -283,11 +284,11 @@ export const Game: ForwardRefExoticComponent<GameProps & RefAttributes<GameHandl
     ref,
     (): {
       clear: () => void;
-      attachSocket: (socket: WebSocket, onJson: HandlerJSON) => (() => void) | null;
+      attachSocket: (socket: GameSocket, onJson: HandlerJSON) => (() => void) | null;
       detachSocket: () => void;
     } => ({
       clear: (): void => managerRef.current?.clear(),
-      attachSocket: (socket: WebSocket, onJson: HandlerJSON): (() => void) | null =>
+      attachSocket: (socket: GameSocket, onJson: HandlerJSON): (() => void) | null =>
         managerRef.current?.attachSocket(socket, onJson) ?? null,
       detachSocket: (): void => managerRef.current?.detachSocket(),
     }),

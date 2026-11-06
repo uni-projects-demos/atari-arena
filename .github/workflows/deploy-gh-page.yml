@@ -2,7 +2,8 @@ name: deploy-gh-page
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -16,7 +17,11 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04 || ubuntu-latest
+
+    env:
+      ARENA_RUNTIME: ${{ vars.ARENA_RUNTIME || (vars.API_URL && 'python' || 'browser') }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -24,19 +29,31 @@ jobs:
       - name: Setup
         uses: actions/setup-node@v7
         with:
-          node-version: 24
+          node-version: 26
 
-      - name: Install
+      - name: Install Node
         run: npm ci
 
+      - name: Install Rust
+        if: env.ARENA_RUNTIME == 'browser'
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install WASM
+        if: env.ARENA_RUNTIME == 'browser'
+        run: cargo install wasm-bindgen-cli --locked --version 0.2.130
+
       - name: Verify
-        run: npm run verify
+        run: npm run verify:all
 
       - name: Build
         env:
           GITHUB_REPO: ${{ github.repository }}
           VITE_API_URL: ${{ vars.API_URL }}
           VITE_WS_URL: ${{ vars.WS_URL }}
+          VITE_RUNTIME: ${{ env.ARENA_RUNTIME }}
+          VITE_BROWSER_DEVICE: ${{ vars.BROWSER_DEVICE || 'wasm' }}
         run: npm run build:pages
 
       - name: Config
@@ -51,8 +68,11 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+
+    runs-on: ubuntu-26.04 || ubuntu-latest
+
     needs: build
+
     steps:
       - name: Deploy
         id: deployment

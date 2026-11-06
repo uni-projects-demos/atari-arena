@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "games": [
+    "../multiplayer/pong/games.json",
+    "../multiplayer/boxing/games.json",
+    "../multiplayer/ice_hockey/games.json",
+    "../multiplayer/tennis/games.json",
+    "../singleplayer/breakout/games.json",
+    "../singleplayer/space_invaders/games.json"
+  ],
+  "ale_module": "vendor/ale/ale.js",
+  "multi_ale_module": "vendor/multi-ale/multi-ale.js"
+}

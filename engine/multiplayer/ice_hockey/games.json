@@ -1,0 +1,133 @@
+{
+  "key": "icehockey",
+  "label": "Atari Ice Hockey",
+  "description": "Atari Ice Hockey. Supports all match modes.",
+  "rom_url": "roms/ice_hockey.bin",
+  "default_profile": "icehockey-noframeskip-v4",
+  "profiles": [
+    {
+      "key": "icehockey-noframeskip-v4",
+      "label": "IceHockeyNoFrameskip-v4 \u00b7 Sample Factory",
+      "frame_skip": 4,
+      "repeat_action_prob": 0
+    },
+    {
+      "key": "ale-icehockey-v5",
+      "label": "ALE/IceHockey-v5",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    }
+  ],
+  "modes": {
+    "scoring": {
+      "kind": "ram",
+      "addresses": [10, 11],
+      "encoding": "bcd",
+      "overrides": []
+    },
+    "user_controls": {
+      "move": "\u2191/\u2193/\u2190/\u2192 or W/A/S/D",
+      "fire": "SPACE (shoot/pass/check)",
+      "layout": "joystick"
+    },
+    "opponent": {
+      "key": "second_0",
+      "player_type": "model",
+      "side": "right",
+      "mirror": false,
+      "agent_index": 1,
+      "action_map": [0, 1, 5, 3, 4, 2, 8, 9, 6, 7, 13, 11, 12, 10, 16, 17, 14, 15],
+      "color_swaps": [
+        {
+          "first": [45, 50, 184],
+          "second": [232, 204, 99],
+          "region": {
+            "left": 16,
+            "top": 30,
+            "width": 128,
+            "height": 158
+          }
+        },
+        {
+          "first": [184, 50, 50],
+          "second": [82, 126, 45],
+          "region": {
+            "left": 16,
+            "top": 30,
+            "width": 128,
+            "height": 158
+          }
+        },
+        {
+          "first": [84, 92, 214],
+          "second": [210, 182, 86],
+          "region": {
+            "left": 16,
+            "top": 30,
+            "width": 128,
+            "height": 158
+          }
+        }
+      ],
+      "policy_view": "ice_hockey"
+    },
+    "emulator_mode": 1,
+    "reset_actions": [],
+    "single_reset_actions": [1, 2],
+    "human_reset_actions": [1, 2]
+  },
+  "models": [
+    {
+      "id": "default",
+      "name": "Ice Hockey APPO \u00b7 504M steps",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/MattStammers/appo-atari_icehockey-superhuman/resolve/ccb1cb3ad1da4168170c4f847c49d179c2082d7e/checkpoint_p0/checkpoint_001961584_504340480.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "51aef74db3c8496d850a63b1116fda959241ffbfae810746e1461c0fc4aad38d"
+      },
+      "n_actions": 18,
+      "profile": "icehockey-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": true,
+      "default_model_ii": false
+    },
+    {
+      "id": "best",
+      "name": "Ice Hockey APPO \u00b7 501M steps",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/MattStammers/appo-atari_icehockey-superhuman/resolve/ccb1cb3ad1da4168170c4f847c49d179c2082d7e/checkpoint_p0/best_001955200_501071872_reward_26.710.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "54b822eedb17878c1a3e19befb71f18b2fd36b417825f55ce0d83b290f0b057b"
+      },
+      "n_actions": 18,
+      "profile": "icehockey-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    }
+  ]
+}

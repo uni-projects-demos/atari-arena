@@ -1,18 +1,22 @@
-# Atari Model Arena UI
+# Atari Arena
 
-Web UI for testing trained models against Atari game engines and, when supported, users and other models.
-
-## Requirements
-
-> The UI is standalone, but [atari-model-arena-api](https://github.com/uni-projects-demos/atari-web-arena-api/) is required for loading models and Atari gameplay.
+Evaluate & play trained models against Atari game engines, users & other models. Supports user vs game mode.
 
 ## Install
 
 ```bash
-npm install
+npm ci
 ```
 
 ## Dev
+
+Serverless - Rust:
+
+```bash
+npm run dev:browser
+```
+
+With [atari-arena-api](https://github.com/uni-projects-demos/atari-arena-api) - Python:
 
 ```bash
 npm run dev
@@ -20,11 +24,17 @@ npm run dev
 
 ## Build
 
-```bash
-npm run build
-```
+Serverless - Rust:
 
 ```bash
+npm run build:browser
+npm run preview
+```
+
+With [atari-arena-api](https://github.com/uni-projects-demos/atari-arena-api) - Python:
+
+```bash
+npm run build
 npm run preview
 ```
 

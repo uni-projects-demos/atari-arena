@@ -3,7 +3,7 @@
     {
       "key": "breakout",
       "label": "Atari Breakout",
-      "description": "Classic Breakout supporting model-vs-game and user-vs-game modes.",
+      "description": "Classic Atari Breakout.",
       "modes": [
         {
           "key": "game",
@@ -55,7 +55,7 @@
     {
       "key": "pong",
       "label": "Atari Pong",
-      "description": "Classic Pong supporting model-vs-game, model-vs-model, model-vs-user, user-vs-game, and user-vs-model modes.",
+      "description": "Classic Atari Pong. Supports all match modes.",
       "modes": [
         {
           "key": "game",

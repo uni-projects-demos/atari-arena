@@ -1,0 +1,12 @@
+{
+  "name": "@atari-arena/browser",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "onnxruntime-web": "1.31.1"
+  }
+}

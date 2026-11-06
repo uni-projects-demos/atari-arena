@@ -1,0 +1,212 @@
+{
+  "key": "space_invaders",
+  "label": "Atari Space Invaders",
+  "description": "Classic Atari Space Invaders.",
+  "rom_url": "roms/space_invaders.bin",
+  "action_names": ["NOOP", "FIRE", "RIGHT", "LEFT", "RIGHTFIRE", "LEFTFIRE"],
+  "controls": [
+    {
+      "direction": "none",
+      "action": 0
+    },
+    {
+      "direction": "fire",
+      "action": 1
+    },
+    {
+      "direction": "up",
+      "action": 0
+    },
+    {
+      "direction": "down",
+      "action": 0
+    },
+    {
+      "direction": "right",
+      "action": 2
+    },
+    {
+      "direction": "left",
+      "action": 3
+    },
+    {
+      "direction": "up_right",
+      "action": 2
+    },
+    {
+      "direction": "down_right",
+      "action": 2
+    },
+    {
+      "direction": "up_left",
+      "action": 3
+    },
+    {
+      "direction": "down_left",
+      "action": 3
+    },
+    {
+      "direction": "up_fire",
+      "action": 1
+    },
+    {
+      "direction": "down_fire",
+      "action": 1
+    },
+    {
+      "direction": "right_fire",
+      "action": 4
+    },
+    {
+      "direction": "left_fire",
+      "action": 5
+    },
+    {
+      "direction": "up_right_fire",
+      "action": 4
+    },
+    {
+      "direction": "down_right_fire",
+      "action": 4
+    },
+    {
+      "direction": "up_left_fire",
+      "action": 5
+    },
+    {
+      "direction": "down_left_fire",
+      "action": 5
+    }
+  ],
+  "default_profile": "spaceinvaders-noframeskip-v4",
+  "profiles": [
+    {
+      "key": "spaceinvaders-noframeskip-v4",
+      "label": "SpaceInvadersNoFrameskip-v4 \u00b7 Sample Factory",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.0
+    },
+    {
+      "key": "ale-spaceinvaders-v5",
+      "label": "ALE/SpaceInvaders-v5",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    }
+  ],
+  "modes": [
+    {
+      "key": "game",
+      "left_label": "GAME",
+      "right_label": "MODEL",
+      "players": [
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "model",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "user_controls": null,
+      "emulator": "ale",
+      "scoring": {
+        "kind": "signed",
+        "positive": "right",
+        "negative": "left"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": true,
+      "episodic_life": true,
+      "emulator_mode": null,
+      "max_cycles": 100000
+    },
+    {
+      "key": "user-game",
+      "left_label": "GAME",
+      "right_label": "YOU",
+      "user_controls": {
+        "move": "\u2190/\u2192 or A/D",
+        "fire": "SPACE (shoot)",
+        "layout": "joystick"
+      },
+      "players": [
+        {
+          "side": "right",
+          "key": "first_0",
+          "player_type": "human",
+          "mirror": false,
+          "agent_index": 0
+        }
+      ],
+      "emulator": "ale",
+      "scoring": {
+        "kind": "signed",
+        "positive": "right",
+        "negative": "left"
+      },
+      "mirror_frame": false,
+      "alternating_serve": false,
+      "reset_actions": [1, 2],
+      "random_noops": true,
+      "episodic_life": true,
+      "emulator_mode": null,
+      "max_cycles": 100000
+    }
+  ],
+  "models": [
+    {
+      "id": "default",
+      "name": "Space Invaders APPO \u00b7 40K mean",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/MattStammers/appo-atari_spaceinvaders-superhuman/resolve/3107b58ad820e99ea9ef9de145f18664786062bd/checkpoint_p0/checkpoint_001966064_505348096.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "b5d5e0b362861e8911f68561c3cd3b560fad051c5ccea360f3983a3447abc2f1"
+      },
+      "n_actions": 6,
+      "profile": "spaceinvaders-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": true,
+      "default_model_ii": false
+    },
+    {
+      "id": "best",
+      "name": "Space Invaders APPO",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/MattStammers/appo-atari_spaceinvaders-superhuman/resolve/3107b58ad820e99ea9ef9de145f18664786062bd/checkpoint_p0/best_001932448_494706688_reward_1923.730.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "ceb0464f0adc9927af475225fdb47676393ed242781adf3f4883adf72932cbcd"
+      },
+      "n_actions": 6,
+      "profile": "spaceinvaders-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    }
+  ]
+}

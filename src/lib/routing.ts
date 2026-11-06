@@ -1,6 +1,6 @@
 import type { MatchModeKey } from "@/types";
 
-export const DEFAULT_MODE: MatchModeKey = "user";
+export const DEFAULT_MODE: MatchModeKey = "game";
 
 const IS_PAGES_ROUTING: boolean = import.meta.env.MODE === "pages";
 

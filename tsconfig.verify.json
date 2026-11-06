@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@/*": ["./src/*"],
+      "@atari-arena/browser": ["./types/atari-arena-browser.d.ts"]
+    }
+  },
+  "include": ["src", "vite.config.ts", "types"],
+  "exclude": ["engine/browser"]
+}

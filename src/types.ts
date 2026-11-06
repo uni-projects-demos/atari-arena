@@ -8,6 +8,16 @@ export type UserControlDir =
   | "fire"
   | "up_fire"
   | "down_fire"
+  | "left_fire"
+  | "right_fire"
+  | "up_left"
+  | "up_right"
+  | "down_left"
+  | "down_right"
+  | "up_left_fire"
+  | "up_right_fire"
+  | "down_left_fire"
+  | "down_right_fire"
   | "none";
 
 interface MatchLabels {
@@ -29,6 +39,7 @@ export interface ModelInfo extends NamedEntity {
 export interface UserControls {
   move: string | null;
   fire: string | null;
+  layout?: "axis" | "joystick" | null;
 }
 
 export interface PlayerSlot {

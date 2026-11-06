@@ -1,7 +1,16 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.13/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.5/schema.json",
   "files": {
-    "includes": ["**", "!dist", "!node_modules"]
+    "includes": [
+      "**",
+      "!dist",
+      "!node_modules",
+      "!target",
+      "!public/runtime",
+      "!engine/browser/src",
+      "!engine/multiplayer/vendor",
+      "!engine/target"
+    ]
   },
   "formatter": {
     "enabled": true,

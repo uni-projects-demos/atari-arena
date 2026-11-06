@@ -1,0 +1,111 @@
+{
+  "key": "tennis",
+  "label": "Atari Tennis",
+  "description": "Classic Atari Tennis. Supports all match modes.",
+  "rom_url": "roms/tennis.bin",
+  "default_profile": "tennis-noframeskip-v4",
+  "profiles": [
+    {
+      "key": "tennis-noframeskip-v4",
+      "label": "TennisNoFrameskip-v4 \u00b7 Sample Factory",
+      "frame_skip": 4,
+      "repeat_action_prob": 0
+    },
+    {
+      "key": "ale-tennis-v5",
+      "label": "ALE/Tennis-v5",
+      "frame_skip": 4,
+      "repeat_action_prob": 0.25
+    }
+  ],
+  "modes": {
+    "scoring": {
+      "kind": "ram",
+      "addresses": [71, 72],
+      "encoding": "binary",
+      "overrides": []
+    },
+    "user_controls": {
+      "move": "\u2191/\u2193/\u2190/\u2192 or W/A/S/D",
+      "fire": "SPACE (serve/swing)",
+      "layout": "joystick"
+    },
+    "opponent": {
+      "key": "second_0",
+      "player_type": "model",
+      "side": "right",
+      "mirror": false,
+      "agent_index": 1,
+      "color_swaps": [
+        {
+          "first": [240, 128, 128],
+          "second": [117, 128, 240],
+          "region": {
+            "left": 0,
+            "top": 16,
+            "width": 160,
+            "height": 176
+          }
+        }
+      ]
+    },
+    "emulator_mode": 2,
+    "reset_actions": [1],
+    "single_reset_actions": [1],
+    "human_reset_actions": []
+  },
+  "models": [
+    {
+      "id": "default",
+      "name": "Tennis APPO \u00b7 2B steps",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/edbeeching/atari_tennis_3333/resolve/7366664c291ce8c754dbefe152bca9133a52d751/checkpoint_p0/checkpoint_000976624_2000125952.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "b97ced1a9cc2415aac26dc47723fc2811632a3b1ba4d70360e9e47b518ef8c25"
+      },
+      "n_actions": 18,
+      "profile": "tennis-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": true,
+      "default_model_ii": false
+    },
+    {
+      "id": "best",
+      "name": "Tennis APPO",
+      "policy": {
+        "kind": "onnx",
+        "url": "https://huggingface.co/edbeeching/atari_tennis_3333/resolve/7366664c291ce8c754dbefe152bca9133a52d751/checkpoint_p0/best_000528896_1083179008_reward_24.000.pth",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "format": "sample_factory",
+        "sha256": "4d461ab0f9e568929c22ec43dd4d2099fdc001fc7b8458c43ed1484b897b6117"
+      },
+      "n_actions": 18,
+      "profile": "tennis-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1,
+        "padding": "repeat",
+        "grayscale_order": "after_resize"
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    }
+  ]
+}

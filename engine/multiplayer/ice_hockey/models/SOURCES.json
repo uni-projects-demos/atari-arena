@@ -1,0 +1,90 @@
+{
+  "default": {
+    "repo_id": "MattStammers/appo-atari_icehockey-superhuman",
+    "revision": "ccb1cb3ad1da4168170c4f847c49d179c2082d7e",
+    "filename": "checkpoint_p0/checkpoint_001961584_504340480.pth",
+    "sha256": "51aef74db3c8496d850a63b1116fda959241ffbfae810746e1461c0fc4aad38d",
+    "format": "sample_factory",
+    "url": "https://huggingface.co/MattStammers/appo-atari_icehockey-superhuman/resolve/ccb1cb3ad1da4168170c4f847c49d179c2082d7e/checkpoint_p0/checkpoint_001961584_504340480.pth",
+    "published_evaluation": [
+      {
+        "name": "APPO",
+        "results": [
+          {
+            "task": {
+              "type": "reinforcement-learning",
+              "name": "reinforcement-learning"
+            },
+            "dataset": {
+              "name": "atari_icehockey",
+              "type": "atari_icehockey"
+            },
+            "metrics": [
+              {
+                "type": "mean_reward",
+                "value": "27.70 +/- 7.13",
+                "name": "mean_reward",
+                "verified": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "evaluation_note": "Upstream model-card results are self-reported, may use different evaluation protocols, and do not establish a global ranking. Best training checkpoints have no separate held-out evaluation in the card.",
+    "input": {
+      "width": 84,
+      "height": 84,
+      "history": 4,
+      "scale": 1,
+      "padding": "repeat",
+      "grayscale_order": "after_resize"
+    },
+    "n_actions": 18,
+    "default": true
+  },
+  "best": {
+    "repo_id": "MattStammers/appo-atari_icehockey-superhuman",
+    "revision": "ccb1cb3ad1da4168170c4f847c49d179c2082d7e",
+    "filename": "checkpoint_p0/best_001955200_501071872_reward_26.710.pth",
+    "sha256": "54b822eedb17878c1a3e19befb71f18b2fd36b417825f55ce0d83b290f0b057b",
+    "format": "sample_factory",
+    "url": "https://huggingface.co/MattStammers/appo-atari_icehockey-superhuman/resolve/ccb1cb3ad1da4168170c4f847c49d179c2082d7e/checkpoint_p0/best_001955200_501071872_reward_26.710.pth",
+    "published_evaluation": [
+      {
+        "name": "APPO",
+        "results": [
+          {
+            "task": {
+              "type": "reinforcement-learning",
+              "name": "reinforcement-learning"
+            },
+            "dataset": {
+              "name": "atari_icehockey",
+              "type": "atari_icehockey"
+            },
+            "metrics": [
+              {
+                "type": "mean_reward",
+                "value": "27.70 +/- 7.13",
+                "name": "mean_reward",
+                "verified": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "evaluation_note": "Upstream model-card results are self-reported, may use different evaluation protocols, and do not establish a global ranking. Best training checkpoints have no separate held-out evaluation in the card.",
+    "input": {
+      "width": 84,
+      "height": 84,
+      "history": 4,
+      "scale": 1,
+      "padding": "repeat",
+      "grayscale_order": "after_resize"
+    },
+    "n_actions": 18,
+    "default": false
+  }
+}

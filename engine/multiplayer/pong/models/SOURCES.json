@@ -1,0 +1,86 @@
+{
+  "default": {
+    "repo_id": "sb3/dqn-PongNoFrameskip-v4",
+    "revision": "f1e5c53df3ef4f893466b3da7db98e47218f0357",
+    "filename": "dqn-PongNoFrameskip-v4.zip",
+    "sha256": "f51c07b7722c4cc890096f24ce4f17b4f2cfd6c8bb7772c52a6e7d3722833d4e",
+    "format": "sb3_dqn",
+    "url": "https://huggingface.co/sb3/dqn-PongNoFrameskip-v4/resolve/f1e5c53df3ef4f893466b3da7db98e47218f0357/dqn-PongNoFrameskip-v4.zip",
+    "published_evaluation": [
+      {
+        "name": "DQN",
+        "results": [
+          {
+            "metrics": [
+              {
+                "type": "mean_reward",
+                "value": "20.70 +/- 0.46",
+                "name": "mean_reward",
+                "verified": false
+              }
+            ],
+            "task": {
+              "type": "reinforcement-learning",
+              "name": "reinforcement-learning"
+            },
+            "dataset": {
+              "name": "PongNoFrameskip-v4",
+              "type": "PongNoFrameskip-v4"
+            }
+          }
+        ]
+      }
+    ],
+    "evaluation_note": "Upstream model-card results are self-reported, may use different evaluation protocols, and do not establish a global ranking. Best training checkpoints have no separate held-out evaluation in the card.",
+    "input": {
+      "width": 84,
+      "height": 84,
+      "history": 4,
+      "scale": 1.0
+    },
+    "n_actions": 6,
+    "default": false
+  },
+  "ppo": {
+    "repo_id": "sb3/ppo-PongNoFrameskip-v4",
+    "revision": "55ac4cb4184f0d529eeef49fcee3926b4a7aa4af",
+    "filename": "ppo-PongNoFrameskip-v4.zip",
+    "sha256": "06d5581331ad801390e14f70f5ff4cdd6d8e4b347960f285ac5a3f2ff816db6d",
+    "format": "sb3_ppo",
+    "url": "https://huggingface.co/sb3/ppo-PongNoFrameskip-v4/resolve/55ac4cb4184f0d529eeef49fcee3926b4a7aa4af/ppo-PongNoFrameskip-v4.zip",
+    "published_evaluation": [
+      {
+        "name": "PPO",
+        "results": [
+          {
+            "metrics": [
+              {
+                "type": "mean_reward",
+                "value": "21.00 +/- 0.00",
+                "name": "mean_reward",
+                "verified": false
+              }
+            ],
+            "task": {
+              "type": "reinforcement-learning",
+              "name": "reinforcement-learning"
+            },
+            "dataset": {
+              "name": "PongNoFrameskip-v4",
+              "type": "PongNoFrameskip-v4"
+            }
+          }
+        ]
+      }
+    ],
+    "evaluation_note": "Upstream model-card results are self-reported, may use different evaluation protocols, and do not establish a global ranking. Best training checkpoints have no separate held-out evaluation in the card.",
+    "input": {
+      "width": 84,
+      "height": 84,
+      "history": 4,
+      "scale": 1.0
+    },
+    "n_actions": 6,
+    "default": true
+  }
+}

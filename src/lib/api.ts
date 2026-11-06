@@ -1,4 +1,5 @@
-import { urlAPI } from "@/backend";
+import { requestAPI } from "@/backend";
+import { alphabeticalCatalog } from "@/lib/catalog";
 import type { ResCatalog, ResErrAPI, ResUpload } from "@/types";
 
 type FormField = string | Blob;
@@ -16,7 +17,7 @@ async function postForm<T>(
   fields: Record<string, FormField>,
   fallbackError: string,
 ): Promise<T> {
-  const res: Response = await fetch(urlAPI(path), {
+  const res: Response = await requestAPI(path, {
     method: "POST",
     body: formData(fields),
   });
@@ -31,11 +32,11 @@ async function postForm<T>(
 }
 
 export async function fetchCatalog(errorMessage: (status: number) => string): Promise<ResCatalog> {
-  const res: Response = await fetch(urlAPI("/api/info"));
+  const res: Response = await requestAPI("/api/info");
   if (!res.ok) {
     throw new Error(errorMessage(res.status));
   }
-  return (await res.json()) as ResCatalog;
+  return alphabeticalCatalog((await res.json()) as ResCatalog);
 }
 
 export function loadModelRequest(

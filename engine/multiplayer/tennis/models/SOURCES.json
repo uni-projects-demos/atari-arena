@@ -1,0 +1,90 @@
+{
+  "default": {
+    "repo_id": "edbeeching/atari_tennis_3333",
+    "revision": "7366664c291ce8c754dbefe152bca9133a52d751",
+    "filename": "checkpoint_p0/checkpoint_000976624_2000125952.pth",
+    "sha256": "b97ced1a9cc2415aac26dc47723fc2811632a3b1ba4d70360e9e47b518ef8c25",
+    "url": "https://huggingface.co/edbeeching/atari_tennis_3333/resolve/7366664c291ce8c754dbefe152bca9133a52d751/checkpoint_p0/checkpoint_000976624_2000125952.pth",
+    "format": "sample_factory",
+    "published_evaluation": [
+      {
+        "name": "APPO",
+        "results": [
+          {
+            "task": {
+              "type": "reinforcement-learning",
+              "name": "reinforcement-learning"
+            },
+            "dataset": {
+              "name": "atari_tennis",
+              "type": "atari_tennis"
+            },
+            "metrics": [
+              {
+                "type": "mean_reward",
+                "value": "24.00 +/- 0.00",
+                "name": "mean_reward",
+                "verified": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "input": {
+      "width": 84,
+      "height": 84,
+      "history": 4,
+      "scale": 1,
+      "padding": "repeat",
+      "grayscale_order": "after_resize"
+    },
+    "n_actions": 18,
+    "default": true,
+    "evaluation_note": "Repository model-card result is self-reported; the best training checkpoint has no separately reported held-out evaluation."
+  },
+  "best": {
+    "repo_id": "edbeeching/atari_tennis_3333",
+    "revision": "7366664c291ce8c754dbefe152bca9133a52d751",
+    "filename": "checkpoint_p0/best_000528896_1083179008_reward_24.000.pth",
+    "sha256": "4d461ab0f9e568929c22ec43dd4d2099fdc001fc7b8458c43ed1484b897b6117",
+    "url": "https://huggingface.co/edbeeching/atari_tennis_3333/resolve/7366664c291ce8c754dbefe152bca9133a52d751/checkpoint_p0/best_000528896_1083179008_reward_24.000.pth",
+    "format": "sample_factory",
+    "published_evaluation": [
+      {
+        "name": "APPO",
+        "results": [
+          {
+            "task": {
+              "type": "reinforcement-learning",
+              "name": "reinforcement-learning"
+            },
+            "dataset": {
+              "name": "atari_tennis",
+              "type": "atari_tennis"
+            },
+            "metrics": [
+              {
+                "type": "mean_reward",
+                "value": "24.00 +/- 0.00",
+                "name": "mean_reward",
+                "verified": false
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "input": {
+      "width": 84,
+      "height": 84,
+      "history": 4,
+      "scale": 1,
+      "padding": "repeat",
+      "grayscale_order": "after_resize"
+    },
+    "n_actions": 18,
+    "default": false,
+    "evaluation_note": "Repository model-card result is self-reported; the best training checkpoint has no separately reported held-out evaluation."
+  }
+}
