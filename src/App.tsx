@@ -1,6 +1,6 @@
 import { type JSX, useEffect, useState } from "react";
 import { loadCatalog } from "./backend";
-import Header, { type ThemeMode } from "./components/Header";
+import Header from "./components/Header";
 import { useI18n } from "./i18n";
 import { fetchCatalog } from "./lib/api";
 import { modeSides } from "./lib/modes";
@@ -15,12 +15,6 @@ import type {
   ModeCatalog,
   ResCatalog,
 } from "./types";
-
-const STORAGE_KEY: string = "ui-theme";
-
-function initialTheme(): ThemeMode {
-  return document.documentElement.dataset.theme === "light" ? "light" : "dark";
-}
 
 function buildCatalogModes(games: GameInfo[]): ModeCatalog[] {
   const counts: Map<MatchModeKey, number> = new Map<MatchModeKey, number>();
@@ -52,7 +46,6 @@ function buildCatalogModes(games: GameInfo[]): ModeCatalog[] {
 
 export default function App(): JSX.Element {
   const { t } = useI18n();
-  const [theme, setTheme] = useState<ThemeMode>(initialTheme);
   const [info, setInfo] = useState<ResCatalog | null>(null);
   const [isBackEndAvailable, setIsBackEndAvailable] = useState(false);
   const [arenaRunning, setArenaRunning] = useState(false);
@@ -61,23 +54,28 @@ export default function App(): JSX.Element {
     info && route.gameKey
       ? (info.games.find(({ key }: GameInfo): boolean => key === route.gameKey) ?? null)
       : null;
+  const gameLabelKey: string | undefined =
+    activeGame?.key === "ice_hockey" ? "icehockey" : activeGame?.key;
   const pageTitle: string = activeGame
-    ? t(`games.${activeGame.key}.label`, undefined, activeGame.label)
+    ? t(`games.${gameLabelKey}.label`, undefined, activeGame.label)
     : t("app.title");
+  const tabTitle: string = activeGame
+    ? t("seo.tab.game", { game: pageTitle, app: t("app.title") }, `${pageTitle} | Atari Arena`)
+    : t("seo.tab.home", undefined, "Atari Arena | Eval & play models");
 
   useEffect((): void => {
-    document.title = pageTitle;
-  }, [pageTitle]);
+    document.title = tabTitle;
+    document.querySelector('meta[property="og:title"]')?.setAttribute("content", tabTitle);
+    document.querySelector('meta[name="twitter:title"]')?.setAttribute("content", tabTitle);
+  }, [tabTitle]);
 
   useEffect((): void => {
-    document.documentElement.dataset.theme = theme;
-    try {
-      localStorage.setItem(STORAGE_KEY, theme);
-    } catch {}
-    document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", theme === "dark" ? "#09090b" : "#f4f4f5");
-  }, [theme]);
+    document.documentElement.dataset.game = activeGame?.key ?? "home";
+    const background = getComputedStyle(document.documentElement)
+      .getPropertyValue("--page-background")
+      .trim();
+    document.querySelector('meta[name="theme-color"]')?.setAttribute("content", background);
+  }, [activeGame?.key]);
 
   useEffect((): (() => void) => {
     const syncRoute: () => void = (): void => setRoute(routeFromLoc());
@@ -135,25 +133,17 @@ export default function App(): JSX.Element {
   const back: () => void = (): void => nav(null, route.modeKey);
 
   return (
-    <main className="backend-shell">
+    <main
+      className="backend-shell"
+      data-view={activeGame ? "game" : "home"}
+      data-game={activeGame?.key ?? "home"}
+    >
       <header className="backend-header">
         <div className="backend-header-copy">
           <h1>{pageTitle}</h1>
-
-          {!activeGame && <p className="muted header-copy">{t("app.subtitle")}</p>}
         </div>
 
-        <Header
-          theme={theme}
-          activeGame={Boolean(activeGame)}
-          arenaRunning={arenaRunning}
-          onBack={back}
-          onToggleTheme={(): void =>
-            setTheme((current: ThemeMode): "dark" | "light" =>
-              current === "dark" ? "light" : "dark",
-            )
-          }
-        />
+        <Header activeGame={Boolean(activeGame)} arenaRunning={arenaRunning} onBack={back} />
       </header>
 
       {activeGame ? (
@@ -161,7 +151,6 @@ export default function App(): JSX.Element {
           key={`${activeGame.key}:${route.modeKey}`}
           game={activeGame}
           requestedMode={route.modeKey}
-          onBack={back}
           onCatalogRefresh={refreshInfo}
           isBackEndAvailable={isBackEndAvailable}
           onRunningChange={setArenaRunning}

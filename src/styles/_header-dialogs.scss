@@ -1,0 +1,181 @@
+.backend-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 24px;
+  margin-bottom: 34px;
+}
+
+.backend-header-copy {
+  min-width: 0;
+}
+
+.header-copy {
+  max-width: 720px;
+  margin-bottom: 0;
+}
+
+.header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.header-action {
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  padding: 0;
+  text-decoration: none;
+}
+
+.locale-toggle {
+  flex: 0 0 auto;
+  width: max-content;
+  min-width: 62px;
+  padding-inline: 10px;
+}
+
+.locale-code {
+  min-width: 2ch;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+}
+
+.language-dialog {
+  inline-size: min(540px, calc(100vw - 24px));
+  block-size: min(680px, calc(100dvh - 32px));
+  max-block-size: min(680px, calc(100dvh - 32px));
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  color: var(--foreground);
+  background: var(--surface);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.language-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Only the list scrolls; the heading, search and close control stay in view. */
+.language-dialog-header {
+  flex: 0 0 auto;
+  padding: 24px 24px 12px;
+}
+
+.language-dialog-scroll {
+  flex: 1 1 auto;
+  min-block-size: 0;
+  padding: 0 24px 24px;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+
+.language-dialog::backdrop {
+  background: rgba(7, 17, 27, 0.7);
+}
+
+.language-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.dialog-close {
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.dialog-close:hover {
+  border-color: var(--hover-border);
+  background: var(--accent);
+}
+
+.dialog-close:focus-visible,
+.language-option:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.language-search-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.language-options {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 16px;
+}
+
+.language-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px;
+  text-align: start;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  overflow-wrap: anywhere;
+  cursor: pointer;
+}
+
+.language-option small {
+  color: var(--muted);
+}
+
+.language-option[aria-pressed="true"] {
+  border-color: var(--focus);
+  box-shadow: inset 0 0 0 1px var(--focus);
+}
+
+.language-option:hover {
+  border-color: var(--hover-border);
+  background: var(--accent);
+}
+
+.language-empty {
+  margin: 16px 0 0;
+  color: var(--muted);
+}
+
+.header-action-icon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+}
+
+.header-action-icon svg {
+  display: block;
+  width: 18px;
+  height: 18px;
+}
+
+.repository-link.is-disabled {
+  pointer-events: none;
+  cursor: not-allowed;
+  opacity: 0.45;
+}

@@ -1,9 +1,9 @@
 import { type ChangeEvent, type JSX, type RefObject, useEffect, useRef, useState } from "react";
 import { type GameSocket, modelFileAccept, openGameSocket } from "@/backend";
+import { ControlHint } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Game, type GameHandle } from "@/game/game";
 import { type Translate, useI18n } from "@/i18n";
 import { loadModelRequest, uploadModelRequest } from "@/lib/api";
@@ -24,7 +24,15 @@ import type {
 } from "@/types";
 import Stat from "../components/Stat";
 
-type ArenaStatus = "noModel" | "loading" | "idle" | "playing" | "resetting" | "stopped" | "error";
+type ArenaStatus =
+  | "noModel"
+  | "loading"
+  | "idle"
+  | "playing"
+  | "resetting"
+  | "stopped"
+  | "finished"
+  | "error";
 
 type UploadNotice =
   | { kind: "uploading" }
@@ -46,10 +54,18 @@ interface Telemetry {
   rightAction: string;
 }
 
+interface ScoreSample {
+  point: number;
+  leftScore: number;
+  rightScore: number;
+}
+
+const MAX_SCORE_SAMPLES = 640;
+const INITIAL_SCORE_SAMPLES: ScoreSample[] = [{ point: 0, leftScore: 0, rightScore: 0 }];
+
 interface ArenaPageProps {
   game: GameInfo;
   requestedMode: MatchModeKey | null;
-  onBack: () => void;
   onCatalogRefresh: () => Promise<ResCatalog>;
   isBackEndAvailable: boolean;
   onRunningChange: (isRunning: boolean) => void;
@@ -68,10 +84,6 @@ function preferredModel(models: ModelInfo[], slot: ModelSlotKey = "I"): ModelInf
     models[0] ??
     null
   );
-}
-
-function modelDisplayName(model: ModelInfo): string {
-  return model.name.replace(/\s*[·•]\s*default\s*$/i, "").trim();
 }
 
 function initialMode(game: GameInfo, requestedMode: MatchModeKey | null): MatchMode | null {
@@ -150,21 +162,6 @@ function playerActionText(message: Extract<MsgServer, { type: "frame" }>, slot: 
   return `${actionName ?? String(action)}${action === undefined ? "" : ` (${action})`}`;
 }
 
-function uploadNoticeTxt(notice: UploadNotice, t: Translate): string {
-  if (!notice) return "";
-
-  switch (notice.kind) {
-    case "uploading":
-      return t("arena.uploading");
-    case "using":
-      return t("arena.usingModel", {
-        name: notice.name,
-      });
-    case "error":
-      return notice.message;
-  }
-}
-
 function sendJSON(socket: GameSocket | null | undefined, payload: MsgClient): boolean {
   if (socket?.readyState !== WebSocket.OPEN) {
     return false;
@@ -188,11 +185,9 @@ interface ModelSectionProps {
   isLoaded: boolean;
   isLoading: boolean;
   isDisabled: boolean;
-  uploadFile: File | null;
   uploadNotice: UploadNotice;
   onLoad: () => void;
-  onFileChange: (file: File | null) => void;
-  onUpload: () => void;
+  onUpload: (file: File) => void;
   t: Translate;
   isBackEndAvailable: boolean;
 }
@@ -204,10 +199,8 @@ function ModelSection({
   isLoaded,
   isLoading,
   isDisabled,
-  uploadFile,
   uploadNotice,
   onLoad,
-  onFileChange,
   onUpload,
   t,
   isBackEndAvailable,
@@ -216,52 +209,176 @@ function ModelSection({
 
   return (
     <div className={`model-section${toneClass}`}>
-      <div className="model-block">
-        <span className="field-label mode-toggle-label model-section-label">{label}</span>
-
-        <div className="model-value-row">
-          <div className="model-name">
-            {activeModel ? modelDisplayName(activeModel) : t("arena.noTrainedModel")}
-          </div>
-
-          <Button
-            variant="outline"
-            disabled={!isBackEndAvailable || !activeModel || isDisabled || isLoaded}
-            onClick={onLoad}
-          >
-            {isLoading ? t("status.loading") : isLoaded ? t("arena.loaded") : t("arena.load")}
-          </Button>
-        </div>
-      </div>
-
-      <div className="upload-block">
-        <Input
-          type="file"
-          accept={modelFileAccept}
-          disabled={!isBackEndAvailable || isDisabled}
-          onChange={(event: ChangeEvent<HTMLInputElement>): void =>
-            onFileChange(event.target.files?.[0] ?? null)
-          }
-        />
+      <div className="model-value-row">
+        <span className="field-label model-section-label">{label}</span>
 
         <Button
           variant="outline"
-          disabled={!isBackEndAvailable || isDisabled || !uploadFile}
-          onClick={onUpload}
+          disabled={!isBackEndAvailable || !activeModel || isDisabled || isLoaded}
+          onClick={onLoad}
         >
-          {t("arena.uploadAndUseModel")}
+          {isLoading ? t("status.loading") : isLoaded ? t("arena.loaded") : t("arena.load")}
         </Button>
-
-        {uploadNotice && <p className="muted compact">{uploadNoticeTxt(uploadNotice, t)}</p>}
+        <label
+          className={`ui-button ui-button--outline model-upload-trigger${!isBackEndAvailable || isDisabled ? " is-disabled" : ""}`}
+        >
+          <span>
+            {uploadNotice?.kind === "uploading"
+              ? t("arena.uploading")
+              : t("arena.uploadAndUseModel")}
+          </span>
+          <input
+            className="model-file-input"
+            type="file"
+            accept={modelFileAccept}
+            disabled={!isBackEndAvailable || isDisabled}
+            aria-label={t("arena.uploadAndUseModel")}
+            onChange={(event: ChangeEvent<HTMLInputElement>): void => {
+              const file: File | undefined = event.target.files?.[0];
+              if (file) onUpload(file);
+              event.target.value = "";
+            }}
+          />
+        </label>
       </div>
+      {uploadNotice?.kind === "error" && (
+        <p className="muted compact model-upload-notice">{uploadNotice.message}</p>
+      )}
     </div>
+  );
+}
+
+function ScoreGraph({
+  gameKey,
+  telemetry,
+  scoreHistory,
+  trackedSide,
+  isDualScoreLines,
+  leftTone,
+  rightTone,
+}: {
+  gameKey: string;
+  telemetry: Telemetry;
+  scoreHistory: ScoreSample[];
+  trackedSide: "left" | "right";
+  isDualScoreLines: boolean;
+  leftTone: PlayerTone;
+  rightTone: PlayerTone;
+}): JSX.Element {
+  const isSpaceInvaders = gameKey === "space_invaders" && !isDualScoreLines;
+  const graphScore = (sample: ScoreSample, sign: number): number =>
+    isSpaceInvaders
+      ? trackedSide === "left"
+        ? sample.leftScore
+        : sample.rightScore
+      : sign * (sample.leftScore - sample.rightScore);
+  const limits: Record<string, number> = {
+    pong: 21,
+    boxing: 100,
+  };
+  const maxLead = Math.max(
+    1,
+    ...scoreHistory.map(({ leftScore, rightScore }) =>
+      isSpaceInvaders
+        ? Math.max(0, trackedSide === "left" ? leftScore : rightScore)
+        : Math.abs(leftScore - rightScore),
+    ),
+  );
+  const latestPoint = scoreHistory[scoreHistory.length - 1]?.point ?? 0;
+  const pairedAxes = gameKey === "tennis" || gameKey === "ice_hockey";
+  const range =
+    gameKey === "ice_hockey"
+      ? Math.max(5, maxLead, latestPoint)
+      : gameKey === "tennis"
+        ? Math.max(7, maxLead, latestPoint)
+        : (limits[gameKey] ?? Math.max(10, 10 ** Math.ceil(Math.log10(maxLead))));
+  const totalPoints = pairedAxes ? range : Math.max(20, latestPoint);
+
+  const traces: { key: string; sign: number; tone: PlayerTone }[] = isDualScoreLines
+    ? [
+        { key: "left", sign: 1, tone: leftTone },
+        { key: "right", sign: -1, tone: rightTone },
+      ]
+    : [
+        {
+          key: "score",
+          sign: trackedSide === "left" ? 1 : -1,
+          tone: trackedSide === "left" ? leftTone : rightTone,
+        },
+      ];
+
+  const linePath = (sign: number): string => {
+    let peak = 0;
+    const y = (sample: ScoreSample): number => {
+      const raw = graphScore(sample, sign);
+      let score = raw;
+      if (isSpaceInvaders) {
+        peak = Math.max(peak, 0, raw);
+        score = peak;
+      }
+      const halfHeight = gameKey === "tennis" || gameKey === "ice_hockey" ? 50 : 49;
+      return 50 - Math.max(-1, Math.min(1, score / range)) * halfHeight;
+    };
+    let path = "M 0 50 L 0.01 50";
+    let previousX = 0;
+    let previousY = 50;
+    const pixelSteps = 5;
+    for (const sample of scoreHistory.slice(1)) {
+      const x = Math.min(100, (sample.point / totalPoints) * 100);
+      const nextY = y(sample);
+      for (let step = 1; step <= pixelSteps; step += 1) {
+        const fraction = step / pixelSteps;
+        const pixelX = previousX + (x - previousX) * fraction;
+        const pixelY = previousY + (nextY - previousY) * fraction;
+        path += ` H ${pixelX.toFixed(3)} V ${pixelY.toFixed(3)}`;
+      }
+      previousX = x;
+      previousY = nextY;
+    }
+    return path;
+  };
+
+  return (
+    <Card className="score-graph-card">
+      <CardContent className="score-graph-content">
+        <div
+          className="score-graph-plot"
+          role="img"
+          aria-label={`${telemetry.leftLabel}: ${formatScore(telemetry.leftScore)}; ${telemetry.rightLabel}: ${formatScore(telemetry.rightScore)}`}
+        >
+          <svg
+            className="score-graph-svg"
+            viewBox="0 0 100 100"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <line
+              className="score-graph-zero"
+              x1="0"
+              y1="50"
+              x2="100"
+              y2="50"
+              vectorEffect="non-scaling-stroke"
+            />
+            {traces.map(({ key, sign, tone }) => (
+              <path
+                key={key}
+                className={`score-graph-line score-graph-line--${tone}`}
+                d={linePath(sign)}
+                fill="none"
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          </svg>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
 export default function ArenaPage({
   game,
   requestedMode,
-  onBack,
   onCatalogRefresh,
   isBackEndAvailable,
   onRunningChange,
@@ -290,11 +407,8 @@ export default function ArenaPage({
     I: null,
     II: null,
   });
-  const [uploadFiles, setUploadFiles] = useState<Record<ModelSlotKey, File | null>>({
-    I: null,
-    II: null,
-  });
   const [telemetry, setTelemetry] = useState((): Telemetry => initialTelemetry(firstMode));
+  const [scoreHistory, setScoreHistory] = useState<ScoreSample[]>(() => INITIAL_SCORE_SAMPLES);
 
   const wsRef: RefObject<GameSocket | null> = useRef<GameSocket | null>(null);
   const pixiRef: RefObject<GameHandle | null> = useRef<GameHandle | null>(null);
@@ -321,6 +435,13 @@ export default function ArenaPage({
     rightModeEntries.map(({ right }: { right: MatchSide }): MatchSide => right),
     "right",
   );
+  const trackedPlayerType = mode?.key === "user-game" ? "human" : "model";
+  const trackedSide: "left" | "right" =
+    mode?.players?.find(({ player_type }: PlayerSlot): boolean => player_type === trackedPlayerType)
+      ?.side ??
+    (mode?.left_label.toLowerCase() === (trackedPlayerType === "human" ? "you" : "model")
+      ? "left"
+      : "right");
   const activeModelI: ModelInfo | null =
     game.models.find(({ id }: ModelInfo): boolean => id === activeModelIds.I) ??
     preferredModel(game.models, "I");
@@ -330,6 +451,10 @@ export default function ArenaPage({
   const modelCount: number = modelPlayerCount(mode);
   const isRequireModel: boolean = modelCount > 0;
   const isModelVsModel: boolean = modelCount > 1;
+  const isUserVsModel: boolean =
+    (currentSides.left === "user" && currentSides.right === "model") ||
+    (currentSides.left === "model" && currentSides.right === "user");
+  const isDualScoreLines: boolean = isModelVsModel || isUserVsModel;
   const isSameModelMatch: boolean = Boolean(
     isModelVsModel && activeModelI && activeModelII && activeModelI.id === activeModelII.id,
   );
@@ -338,7 +463,7 @@ export default function ArenaPage({
     II: activeModelII?.id ?? null,
   };
   const leftTone: PlayerTone = "green";
-  const rightTone: PlayerTone = isSameModelMatch ? "green" : "blue";
+  const rightTone: PlayerTone = isSameModelMatch && game.key === "pong" ? "green" : "blue";
 
   const isRunning: boolean = status === "playing" || status === "resetting";
   const isSessionActive: boolean = isRunning || starting;
@@ -441,12 +566,7 @@ export default function ArenaPage({
       return;
     }
 
-    setStatus(
-      (
-        current: ArenaStatus,
-      ): "noModel" | "loading" | "idle" | "playing" | "resetting" | "stopped" | "error" =>
-        current === "resetting" ? "playing" : current,
-    );
+    setStatus(message.is_finished ? "finished" : "playing");
 
     const fallbackAction: string = `${message.model_action_name} (${message.model_action})`;
     const leftModelSlot: string | null = modelSlotForSide(mode, "left");
@@ -460,6 +580,41 @@ export default function ArenaPage({
       action: fallbackAction,
       leftAction: leftModelSlot ? playerActionText(message, leftModelSlot) : fallbackAction,
       rightAction: rightModelSlot ? playerActionText(message, rightModelSlot) : fallbackAction,
+    });
+    setScoreHistory((previous: ScoreSample[]): ScoreSample[] => {
+      const last = previous[previous.length - 1] ?? INITIAL_SCORE_SAMPLES[0];
+      const leftDelta = message.left_score - last.leftScore;
+      const rightDelta = message.right_score - last.rightScore;
+      if (leftDelta === 0 && rightDelta === 0) return previous;
+
+      const next = [...previous];
+      const appendPoint = (leftScore: number, rightScore: number): void => {
+        next.push({ point: next[next.length - 1].point + 1, leftScore, rightScore });
+      };
+
+      if (
+        Number.isInteger(leftDelta) &&
+        Number.isInteger(rightDelta) &&
+        leftDelta >= 0 &&
+        rightDelta >= 0 &&
+        leftDelta + rightDelta <= 100
+      ) {
+        for (let i = 1; i <= leftDelta; i += 1) {
+          appendPoint(last.leftScore + i, last.rightScore);
+        }
+        for (let i = 1; i <= rightDelta; i += 1) {
+          appendPoint(message.left_score, last.rightScore + i);
+        }
+      } else {
+        appendPoint(message.left_score, message.right_score);
+      }
+
+      return next.length > MAX_SCORE_SAMPLES
+        ? [
+            next[0],
+            ...next.slice(1).filter((_, index) => index % 2 === 0 || index === next.length - 2),
+          ]
+        : next;
     });
   };
 
@@ -516,6 +671,9 @@ export default function ArenaPage({
       return selected;
     };
 
+    setTelemetry(initialTelemetry(mode));
+    setScoreHistory(INITIAL_SCORE_SAMPLES);
+    pixiRef.current?.clear();
     const socket = openGameSocket();
 
     wsRef.current = socket;
@@ -553,8 +711,8 @@ export default function ArenaPage({
       detachViewport();
       wsRef.current = null;
       setStarting(false);
-      setStatus((current: ArenaStatus): "stopped" | "error" =>
-        current === "error" ? current : "stopped",
+      setStatus((current: ArenaStatus): "stopped" | "finished" | "error" =>
+        current === "error" || current === "finished" ? current : "stopped",
       );
     };
   };
@@ -562,6 +720,8 @@ export default function ArenaPage({
   const reset: () => void = (): void => {
     if (sendJSON(wsRef.current, { type: "reset" })) {
       setStatus("resetting");
+      setTelemetry(initialTelemetry(mode));
+      setScoreHistory(INITIAL_SCORE_SAMPLES);
     }
   };
 
@@ -585,6 +745,7 @@ export default function ArenaPage({
     );
 
     setTelemetry(initialTelemetry(nextMode));
+    setScoreHistory(INITIAL_SCORE_SAMPLES);
   };
 
   const chooseLeftMode: (left: MatchSide) => void = (left: MatchSide): void => {
@@ -618,11 +779,11 @@ export default function ArenaPage({
     if (next) chooseMode(next.mode);
   };
 
-  const upload: (slot: ModelSlotKey) => Promise<void> = async (
+  const upload: (slot: ModelSlotKey, uploadFile: File) => Promise<void> = async (
     slot: ModelSlotKey,
+    uploadFile: File,
   ): Promise<void> => {
-    const uploadFile: File | null = uploadFiles[slot];
-    if (!uploadFile || isBusy) {
+    if (isBusy) {
       return;
     }
     setErrorMessage("");
@@ -717,232 +878,231 @@ export default function ArenaPage({
   const overlay: string | null = status === "error" ? errorMessage || t("error.game") : null;
 
   return (
-    <div className="arena-page">
-      <div className="arena-nav arena-nav-desktop">
-        <Button variant="outline" onClick={onBack} disabled={isSessionActive}>
-          {t("arena.back")}
-        </Button>
-      </div>
-
+    <div
+      className={`arena-page${isUserVsModel ? " arena-page--human-model" : ""}${isUserVsModel && (mode?.key === "user" || mode?.key === "model-user") ? " arena-page--model-user" : ""}${isModelVsModel ? " arena-page--model-model" : ""}${mode?.key === "game" && modelCount === 1 ? " arena-page--model-game" : ""}${mode?.key === "user-game" ? " arena-page--user-game" : ""}`}
+    >
       {!isPlayable && <div className="alert">{mode?.error || t("error.noTrainedModel")}</div>}
       {errorMessage && <div className="alert">{errorMessage}</div>}
 
       <div className="arena-layout">
-        <Card className="controls-card">
-          <CardContent className="controls-stack controls-stack-clean">
-            <fieldset className="mode-toggle-block">
-              <legend className="field-label mode-toggle-label">{t("mode.title")}</legend>
+        <div className="arena-sidebar">
+          <Card className="controls-card">
+            <CardContent className="controls-stack controls-stack-clean">
+              <fieldset className="mode-toggle-block">
+                <legend className="field-label mode-toggle-label">{t("mode.title")}</legend>
 
-              <div className="mode-select-row arena-mode-select-row">
-                <label className="sr-only" htmlFor="arena-mode-left">
-                  {t("mode.left")}
-                </label>
-                <select
-                  id="arena-mode-left"
-                  className="mode-select"
-                  value={currentSides.left}
-                  disabled={isSessionActive}
-                  onChange={(event: ChangeEvent<HTMLSelectElement>): void =>
-                    chooseLeftMode(event.target.value as MatchSide)
-                  }
-                >
-                  {leftModeOptions.map((side: MatchSide): JSX.Element => {
-                    const canUse: boolean = modeEntries.some(
-                      (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
-                        entry.left === side && entry.mode.available,
-                    );
-                    return (
-                      <option key={side} value={side} disabled={!canUse}>
-                        {t(sideLabelKey(side))}
-                      </option>
-                    );
-                  })}
-                </select>
+                <div className="mode-select-row arena-mode-select-row">
+                  <label className="sr-only" htmlFor="arena-mode-left">
+                    {t("mode.left")}
+                  </label>
+                  <select
+                    id="arena-mode-left"
+                    className="mode-select"
+                    value={currentSides.left}
+                    disabled={isSessionActive}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>): void =>
+                      chooseLeftMode(event.target.value as MatchSide)
+                    }
+                  >
+                    {leftModeOptions.map((side: MatchSide): JSX.Element => {
+                      const canUse: boolean = modeEntries.some(
+                        (entry: { mode: MatchMode; left: MatchSide; right: MatchSide }): boolean =>
+                          entry.left === side && entry.mode.available,
+                      );
+                      return (
+                        <option key={side} value={side} disabled={!canUse}>
+                          {t(sideLabelKey(side))}
+                        </option>
+                      );
+                    })}
+                  </select>
 
-                <span className="mode-vs" aria-hidden="true">
-                  {t("mode.vs")}
-                </span>
+                  <span className="mode-vs" aria-hidden="true">
+                    {t("mode.vs")}
+                  </span>
 
-                <label className="sr-only" htmlFor="arena-mode-right">
-                  {t("mode.right")}
-                </label>
-                <select
-                  id="arena-mode-right"
-                  className="mode-select"
-                  value={currentSides.right}
-                  disabled={isSessionActive}
-                  onChange={(event: ChangeEvent<HTMLSelectElement>): void =>
-                    chooseRightMode(event.target.value as MatchSide)
-                  }
-                >
-                  {rightModeOptions.map((side: MatchSide): JSX.Element => {
-                    const entry:
-                      | { mode: MatchMode; left: MatchSide; right: MatchSide }
-                      | undefined = rightModeEntries.find(
-                      (candidate: {
-                        mode: MatchMode;
-                        left: MatchSide;
-                        right: MatchSide;
-                      }): boolean => candidate.right === side,
-                    );
-                    return (
-                      <option key={side} value={side} disabled={!entry?.mode.available}>
-                        {t(sideLabelKey(side))}
-                      </option>
-                    );
-                  })}
-                </select>
-              </div>
-            </fieldset>
+                  <label className="sr-only" htmlFor="arena-mode-right">
+                    {t("mode.right")}
+                  </label>
+                  <select
+                    id="arena-mode-right"
+                    className="mode-select"
+                    value={currentSides.right}
+                    disabled={isSessionActive}
+                    onChange={(event: ChangeEvent<HTMLSelectElement>): void =>
+                      chooseRightMode(event.target.value as MatchSide)
+                    }
+                  >
+                    {rightModeOptions.map((side: MatchSide): JSX.Element => {
+                      const entry:
+                        | { mode: MatchMode; left: MatchSide; right: MatchSide }
+                        | undefined = rightModeEntries.find(
+                        (candidate: {
+                          mode: MatchMode;
+                          left: MatchSide;
+                          right: MatchSide;
+                        }): boolean => candidate.right === side,
+                      );
+                      return (
+                        <option key={side} value={side} disabled={!entry?.mode.available}>
+                          {t(sideLabelKey(side))}
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              </fieldset>
 
-            {isModelVsModel ? (
-              <div className="model-versus-stack">
+              {isModelVsModel ? (
+                <div className="model-versus-stack">
+                  <ModelSection
+                    label={t("arena.modelI")}
+                    tone={leftTone}
+                    activeModel={activeModelI}
+                    isLoaded={isLoadedModelI}
+                    isLoading={loadingSlot === "I" && uploadNotices.I?.kind !== "uploading"}
+                    isDisabled={isBusy}
+                    uploadNotice={uploadNotices.I}
+                    onLoad={(): void => void loadModel("I")}
+                    onUpload={(file: File): void => void upload("I", file)}
+                    t={t}
+                    isBackEndAvailable={isBackEndAvailable}
+                  />
+
+                  <div className="model-versus-divider" aria-hidden="true">
+                    {t("mode.vs")}
+                  </div>
+
+                  <ModelSection
+                    label={t("arena.modelII")}
+                    tone={rightTone}
+                    activeModel={activeModelII}
+                    isLoaded={isLoadedModelII}
+                    isLoading={loadingSlot === "II" && uploadNotices.II?.kind !== "uploading"}
+                    isDisabled={isBusy}
+                    uploadNotice={uploadNotices.II}
+                    onLoad={(): void => void loadModel("II")}
+                    onUpload={(file: File): void => void upload("II", file)}
+                    t={t}
+                    isBackEndAvailable={isBackEndAvailable}
+                  />
+                </div>
+              ) : isRequireModel ? (
                 <ModelSection
-                  label={t("arena.modelI")}
-                  tone={leftTone}
+                  label={t("mode.model")}
                   activeModel={activeModelI}
                   isLoaded={isLoadedModelI}
-                  isLoading={loadingSlot === "I"}
+                  isLoading={loadingSlot === "I" && uploadNotices.I?.kind !== "uploading"}
                   isDisabled={isBusy}
-                  uploadFile={uploadFiles.I}
                   uploadNotice={uploadNotices.I}
                   onLoad={(): void => void loadModel("I")}
-                  onFileChange={(file: File | null): void =>
-                    setUploadFiles(
-                      (
-                        current: Record<ModelSlotKey, File | null>,
-                      ): { I: File | null; II: File | null } => ({ ...current, I: file }),
-                    )
-                  }
-                  onUpload={(): void => void upload("I")}
+                  onUpload={(file: File): void => void upload("I", file)}
                   t={t}
                   isBackEndAvailable={isBackEndAvailable}
                 />
+              ) : null}
 
-                <div className="model-versus-divider" aria-hidden="true">
-                  {t("mode.vs")}
-                </div>
+              <label className="range-field">
+                <span className="field-label">
+                  {t("arena.gameSpeed", {
+                    fps,
+                  })}
+                </span>
 
-                <ModelSection
-                  label={t("arena.modelII")}
-                  tone={rightTone}
-                  activeModel={activeModelII}
-                  isLoaded={isLoadedModelII}
-                  isLoading={loadingSlot === "II"}
-                  isDisabled={isBusy}
-                  uploadFile={uploadFiles.II}
-                  uploadNotice={uploadNotices.II}
-                  onLoad={(): void => void loadModel("II")}
-                  onFileChange={(file: File | null): void =>
-                    setUploadFiles(
-                      (
-                        current: Record<ModelSlotKey, File | null>,
-                      ): { I: File | null; II: File | null } => ({ ...current, II: file }),
-                    )
+                <input
+                  type="range"
+                  min={5}
+                  max={60}
+                  value={fps}
+                  disabled={isRunning}
+                  onChange={(event: ChangeEvent<HTMLInputElement, HTMLInputElement>): void =>
+                    setFps(Number(event.target.value))
                   }
-                  onUpload={(): void => void upload("II")}
-                  t={t}
-                  isBackEndAvailable={isBackEndAvailable}
                 />
+              </label>
+
+              <div className="action-row">
+                <Button disabled={isRunning ? false : !canStart} onClick={isRunning ? stop : start}>
+                  {t(isRunning ? "arena.stop" : "arena.start")}
+                </Button>
+                <Button variant="outline" disabled={!isRunning} onClick={reset}>
+                  {t("arena.reset")}
+                </Button>
               </div>
-            ) : isRequireModel ? (
-              <ModelSection
-                label={t("arena.trainedModel")}
-                activeModel={activeModelI}
-                isLoaded={isLoadedModelI}
-                isLoading={loadingSlot === "I"}
-                isDisabled={isBusy}
-                uploadFile={uploadFiles.I}
-                uploadNotice={uploadNotices.I}
-                onLoad={(): void => void loadModel("I")}
-                onFileChange={(file: File | null): void =>
-                  setUploadFiles(
-                    (
-                      current: Record<ModelSlotKey, File | null>,
-                    ): { I: File | null; II: File | null } => ({ ...current, I: file }),
-                  )
-                }
-                onUpload={(): void => void upload("I")}
-                t={t}
-                isBackEndAvailable={isBackEndAvailable}
-              />
-            ) : null}
 
-            <label className="range-field">
-              <span className="field-label">
-                {t("arena.gameSpeed", {
-                  fps,
-                })}
-              </span>
+              {(mode?.user_controls?.move || mode?.user_controls?.fire) && (
+                <div className="controls-block">
+                  <span className="field-label mode-toggle-label">{t("arena.controls")}</span>
 
-              <input
-                type="range"
-                min={5}
-                max={60}
-                value={fps}
-                disabled={isRunning}
-                onChange={(event: ChangeEvent<HTMLInputElement, HTMLInputElement>): void =>
-                  setFps(Number(event.target.value))
-                }
-              />
-            </label>
+                  <div className="control-instructions">
+                    {mode.user_controls?.move && (
+                      <div className="control-instruction">
+                        <span className="field-label">{t("arena.move")}</span>
+                        <kbd>
+                          <ControlHint text={mode.user_controls.move} />
+                        </kbd>
+                      </div>
+                    )}
 
-            <div className="action-row">
-              <Button disabled={isRunning ? false : !canStart} onClick={isRunning ? stop : start}>
-                {t(isRunning ? "arena.stop" : "arena.start")}
-              </Button>
-              <Button variant="outline" disabled={!isRunning} onClick={reset}>
-                {t("arena.reset")}
-              </Button>
-            </div>
-
-            {(mode?.user_controls?.move || mode?.user_controls?.fire) && (
-              <div className="controls-block">
-                <span className="field-label mode-toggle-label">{t("arena.controls")}</span>
-
-                <div className="control-instructions">
-                  {mode.user_controls?.move && (
-                    <div className="control-instruction">
-                      <span className="field-label">{t("arena.move")}</span>
-                      <kbd>{mode.user_controls.move}</kbd>
-                    </div>
-                  )}
-
-                  {mode.user_controls?.fire && (
-                    <div className="control-instruction">
-                      <span className="field-label">{t("arena.fireServe")}</span>
-                      <kbd>{mode.user_controls.fire}</kbd>
-                    </div>
-                  )}
+                    {mode.user_controls?.fire && (
+                      <div className="control-instruction">
+                        <span className="field-label">{t("arena.fireServe")}</span>
+                        <kbd>
+                          <ControlHint text={mode.user_controls.fire} />
+                        </kbd>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              )}
+            </CardContent>
+          </Card>
+          <ScoreGraph
+            gameKey={game.key}
+            telemetry={telemetry}
+            scoreHistory={scoreHistory}
+            trackedSide={trackedSide}
+            isDualScoreLines={isDualScoreLines}
+            leftTone={leftTone}
+            rightTone={rightTone}
+          />
+        </div>
 
         <Card className="game-card-panel">
           <CardContent className="game-stage-content">
             <div className="score-bar">
               <div
-                className={isModelVsModel ? `score-player score-player--${leftTone}` : undefined}
+                className={
+                  isDualScoreLines || trackedSide === "left"
+                    ? `score-player score-player--${leftTone}`
+                    : undefined
+                }
               >
                 <span>
                   {isModelVsModel ? t("arena.modelI") : localizedScoreLabel(telemetry.leftLabel, t)}
                 </span>
                 <strong
-                  className={isModelVsModel ? `score-value score-value--${leftTone}` : undefined}
+                  className={
+                    isDualScoreLines || trackedSide === "left"
+                      ? `score-value score-value--${leftTone}`
+                      : undefined
+                  }
                 >
                   {formatScore(telemetry.leftScore)}
                 </strong>
               </div>
 
               <Badge variant={isRunning ? "success" : "secondary"}>
-                {isBackEndAvailable ? t(`status.${status}`) : t("status.serverUnavailable")}
+                {isBackEndAvailable
+                  ? t(`status.${status === "finished" ? "stopped" : status}`)
+                  : t("status.serverUnavailable")}
               </Badge>
 
               <div
                 className={`score-right${
-                  isModelVsModel ? ` score-player score-player--${rightTone}` : ""
+                  isDualScoreLines || trackedSide === "right"
+                    ? ` score-player score-player--${rightTone}`
+                    : ""
                 }`}
               >
                 <span>
@@ -951,7 +1111,11 @@ export default function ArenaPage({
                     : localizedScoreLabel(telemetry.rightLabel, t)}
                 </span>
                 <strong
-                  className={isModelVsModel ? `score-value score-value--${rightTone}` : undefined}
+                  className={
+                    isDualScoreLines || trackedSide === "right"
+                      ? `score-value score-value--${rightTone}`
+                      : undefined
+                  }
                 >
                   {formatScore(telemetry.rightScore)}
                 </strong>

@@ -1,0 +1,30 @@
+.score-graph-plot {
+  display: block;
+}
+.score-graph-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.score-graph-zero {
+  stroke: rgba(232, 225, 214, 0.28);
+  stroke-width: 1;
+  stroke-dasharray: 4 5;
+}
+.score-graph-line {
+  stroke-width: 2.5;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  shape-rendering: crispEdges;
+}
+.score-graph-line--green {
+  stroke: var(--player-green);
+}
+.score-graph-line--blue {
+  stroke: var(--player-blue);
+}
+
+.game-card .game-mode-badge-v {
+  margin-inline: 0.14em;
+}

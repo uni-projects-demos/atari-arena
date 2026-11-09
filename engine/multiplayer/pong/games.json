@@ -117,7 +117,7 @@
       },
       "emulator": "multi_ale",
       "scoring": {
-        "kind": "players"
+        "type": "players"
       },
       "mirror_frame": false,
       "alternating_serve": false,
@@ -143,7 +143,7 @@
       "user_controls": null,
       "emulator": "ale",
       "scoring": {
-        "kind": "signed",
+        "type": "signed",
         "positive": "right",
         "negative": "left"
       },
@@ -178,7 +178,7 @@
       "user_controls": null,
       "emulator": "multi_ale",
       "scoring": {
-        "kind": "players"
+        "type": "players"
       },
       "mirror_frame": false,
       "alternating_serve": true,
@@ -207,7 +207,7 @@
       ],
       "emulator": "ale",
       "scoring": {
-        "kind": "signed",
+        "type": "signed",
         "positive": "right",
         "negative": "left"
       },
@@ -245,7 +245,7 @@
       ],
       "emulator": "multi_ale",
       "scoring": {
-        "kind": "players"
+        "type": "players"
       },
       "mirror_frame": true,
       "display_unmirror_regions": [
@@ -273,39 +273,14 @@
   "models": [
     {
       "id": "default",
-      "name": "PongNoFrameskip-v4 DQN",
+      "name": "Pong DQN - 1M steps",
       "policy": {
-        "kind": "onnx",
-        "url": "https://huggingface.co/sb3/dqn-PongNoFrameskip-v4/resolve/f1e5c53df3ef4f893466b3da7db98e47218f0357/dqn-PongNoFrameskip-v4.zip",
+        "type": "onnx",
+        "url": "https://huggingface.co/r055a/atari-models/resolve/main/Pong-DQN-1M-steps.onnx",
         "input_name": "observation",
         "output_name": "action",
         "output": "action",
-        "format": "sb3_dqn",
-        "sha256": "f51c07b7722c4cc890096f24ce4f17b4f2cfd6c8bb7772c52a6e7d3722833d4e"
-      },
-      "n_actions": 6,
-      "profile": "pong-noframeskip-v4",
-      "input": {
-        "width": 84,
-        "height": 84,
-        "history": 4,
-        "scale": 1.0
-      },
-      "uploaded": false,
-      "default": false,
-      "default_model_ii": true
-    },
-    {
-      "id": "ppo",
-      "name": "PongNoFrameskip-v4 PPO",
-      "policy": {
-        "kind": "onnx",
-        "url": "https://huggingface.co/sb3/ppo-PongNoFrameskip-v4/resolve/55ac4cb4184f0d529eeef49fcee3926b4a7aa4af/ppo-PongNoFrameskip-v4.zip",
-        "input_name": "observation",
-        "output_name": "action",
-        "output": "action",
-        "format": "sb3_ppo",
-        "sha256": "06d5581331ad801390e14f70f5ff4cdd6d8e4b347960f285ac5a3f2ff816db6d"
+        "sha256": "c13f6a05e52189349200542f4561ad52e89edfb3445c6201ee659f484d8e2359"
       },
       "n_actions": 6,
       "profile": "pong-noframeskip-v4",
@@ -320,10 +295,33 @@
       "default_model_ii": false
     },
     {
+      "id": "default-ii",
+      "name": "Pong DQN - 1M steps",
+      "policy": {
+        "type": "onnx",
+        "url": "https://huggingface.co/r055a/atari-models/resolve/main/Pong-DQN-1M-steps.onnx",
+        "input_name": "observation",
+        "output_name": "action",
+        "output": "action",
+        "sha256": "c13f6a05e52189349200542f4561ad52e89edfb3445c6201ee659f484d8e2359"
+      },
+      "n_actions": 6,
+      "profile": "pong-noframeskip-v4",
+      "input": {
+        "width": 84,
+        "height": 84,
+        "history": 4,
+        "scale": 1.0
+      },
+      "uploaded": false,
+      "default": false,
+      "default_model_ii": true
+    },
+    {
       "id": "tracking",
       "name": "Pong tracking baseline (not a trained model)",
       "policy": {
-        "kind": "tracking",
+        "type": "tracking",
         "game": "pong"
       },
       "n_actions": 6,

@@ -23,10 +23,6 @@ export function CardContent(props: CardPartProps): React.ReactElement {
   return renderPart("content", props);
 }
 
-export function CardDescription(props: CardPartProps): React.ReactElement {
-  return renderPart("description", props, "p");
-}
-
 export function CardFooter(props: CardPartProps): React.ReactElement {
   return renderPart("footer", props);
 }

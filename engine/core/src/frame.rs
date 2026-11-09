@@ -51,7 +51,7 @@ impl Observation {
     pub fn rgba(&self) -> Vec<u8> {
         let mut dest: Vec<u8> =
             Vec::with_capacity(self.width as usize * self.height as usize * RGBA_CHANNELS);
-        for pixel in self.rgb.chunks_exact(RGB_CHANNELS) {
+        for pixel in self.rgb.as_chunks::<RGB_CHANNELS>().0 {
             dest.extend_from_slice(pixel);
             dest.push(OPAQUE_ALPHA);
         }
@@ -208,7 +208,13 @@ impl Preprocessor {
         } else if !swaps.is_empty() {
             self.rgb.clear();
             self.rgb.extend_from_slice(&frame.rgb);
-            for (idx, pixel) in self.rgb.chunks_exact_mut(RGB_CHANNELS).enumerate() {
+            for (idx, pixel) in self
+                .rgb
+                .as_chunks_mut::<RGB_CHANNELS>()
+                .0
+                .iter_mut()
+                .enumerate()
+            {
                 if let Some(color) = crate::view::remap_color(
                     pixel,
                     idx as u32 % frame.width,
@@ -304,8 +310,10 @@ fn grayscale_into(pixels: &[u8], order: GrayscaleOrder, dest: &mut Vec<u8>) {
     dest.clear();
     dest.extend(
         pixels
-            .chunks_exact(RGB_CHANNELS)
-            .map(|pixel: &[u8]| grayscale(pixel, order)),
+            .as_chunks::<RGB_CHANNELS>()
+            .0
+            .iter()
+            .map(|pixel| grayscale(pixel, order)),
     );
 }
 fn grayscale(pixel: &[u8], order: GrayscaleOrder) -> u8 {

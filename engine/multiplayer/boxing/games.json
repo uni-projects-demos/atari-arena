@@ -20,7 +20,7 @@
   ],
   "modes": {
     "scoring": {
-      "kind": "ram",
+      "type": "ram",
       "addresses": [18, 19],
       "encoding": "bcd",
       "overrides": [
@@ -65,7 +65,7 @@
       "id": "default",
       "name": "Boxing APPO \u00b7 2B steps",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/edbeeching/atari_2B_atari_boxing_1111/resolve/df02fdcf78acc343bf3ee332dc74d960bdebfdd3/checkpoint_p0/checkpoint_000976624_2000125952.pth",
         "input_name": "observation",
         "output_name": "action",
@@ -91,7 +91,7 @@
       "id": "best",
       "name": "Boxing APPO \u00b7 84M steps",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/edbeeching/atari_2B_atari_boxing_1111/resolve/df02fdcf78acc343bf3ee332dc74d960bdebfdd3/checkpoint_p0/best_000041216_84410368_reward_98.480.pth",
         "input_name": "observation",
         "output_name": "action",

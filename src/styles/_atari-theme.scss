@@ -1,0 +1,382 @@
+:root {
+  --atari-font: "Press Start 2P", "Trebuchet MS", "Courier New", monospace;
+  --atari-text: #f6e27c;
+  --atari-muted: #f0c16e;
+  --atari-shadow: rgba(18, 10, 4, 0.72);
+  --atari-text-glow: rgba(255, 113, 0, 0.28);
+  --tv-off-core: #352f38;
+  --tv-off-mid: #19171e;
+  --tv-off-edge: #06070a;
+  --tv-glare: rgba(255, 255, 255, 0.12);
+  --theme-bg-1: #2b150b;
+  --theme-bg-2: #0d0808;
+  --theme-bg-3: #4a1f16;
+  --theme-scanline: rgba(255, 191, 87, 0.06);
+  --theme-card-top: rgba(43, 20, 13, 0.9);
+  --theme-card-bottom: rgba(18, 8, 8, 0.93);
+  --controller-top: #52453a;
+  --controller-bottom: #2b241f;
+  --controller-panel: #3b3028;
+  --controller-inset: #6f5a4a;
+  --controller-text: #f0d3ac;
+  --neon-orange: #ff7a00;
+  --neon-red: #ff3d57;
+  --neon-yellow: #ffe45c;
+  --neon-cyan: #32e6ff;
+  --neon-green: #7dff65;
+  --neon-purple: #ba6dff;
+  --neon-pink: #ff63dd;
+  --border: #ff7a00;
+  --hover-border: #32e6ff;
+  --focus: #ffe45c;
+  --foreground: var(--atari-text);
+  --muted: var(--atari-muted);
+  --primary: #1f1510;
+  --primary-foreground: #ffeeb7;
+  --secondary-fg: #f6d79c;
+  --accent: rgba(255, 140, 0, 0.1);
+  --card-from: var(--theme-card-top);
+  --card-to: var(--theme-card-bottom);
+  --page-glow: rgba(255, 157, 57, 0.25);
+  --panel: rgba(21, 12, 12, 0.82);
+  --surface: rgba(16, 9, 9, 0.84);
+  --card: rgba(33, 17, 14, 0.92);
+  --card-two: rgba(47, 23, 18, 0.95);
+  --success: rgba(56, 107, 42, 0.48);
+  --success-fg: #b8ff8f;
+  --danger: rgba(98, 29, 41, 0.52);
+  --danger-fg: #ffd4b0;
+  --alert-border: #ff7a00;
+  --alert-bg: rgba(52, 15, 18, 0.88);
+  --alert-fg: #ffe1b4;
+  --kbd-border: #cc9960;
+  --player-green: #7dff65;
+  --player-blue: #32e6ff;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+}
+
+body {
+  font-family: var(--atari-font);
+  letter-spacing: 0.035em;
+  background: #0b0908;
+  color: var(--foreground);
+  text-shadow:
+    0 2px 0 var(--atari-shadow),
+    0 0 10px var(--atari-text-glow);
+}
+
+h1,
+h2,
+.ui-card-title,
+.score-bar strong {
+  color: var(--neon-yellow);
+  text-shadow:
+    0 2px 0 rgba(34, 8, 0, 0.95),
+    0 0 12px rgba(255, 122, 0, 0.3),
+    0 0 24px rgba(255, 61, 87, 0.18);
+}
+
+.backend-shell {
+  position: relative;
+  isolation: isolate;
+  z-index: 0;
+}
+
+.backend-shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  background: var(--theme-bg-1);
+  pointer-events: none;
+}
+
+.backend-shell::after {
+  display: none;
+}
+
+.backend-shell[data-view="home"] {
+  --theme-bg-1: #342114;
+  --theme-bg-2: #0b0908;
+  --theme-bg-3: #67311f;
+  --theme-scanline: rgba(255, 193, 94, 0.07);
+  --page-glow: rgba(255, 143, 77, 0.24);
+}
+
+.backend-shell[data-game="pong"] {
+  --theme-bg-1: #081104;
+  --theme-bg-2: #040606;
+  --theme-bg-3: #1a3411;
+  --theme-scanline: rgba(129, 255, 101, 0.06);
+  --card-from: rgba(9, 23, 7, 0.92);
+  --card-to: rgba(4, 10, 6, 0.95);
+  --panel: rgba(10, 18, 10, 0.84);
+  --surface: rgba(7, 16, 9, 0.88);
+  --border: #9bff5f;
+  --hover-border: #32e6ff;
+  --focus: #ffe45c;
+  --page-glow: rgba(125, 255, 101, 0.2);
+}
+
+.backend-shell[data-game="boxing"] {
+  --theme-bg-1: #1f0809;
+  --theme-bg-2: #060507;
+  --theme-bg-3: #51272d;
+  --theme-scanline: rgba(255, 99, 117, 0.05);
+  --card-from: rgba(34, 10, 13, 0.92);
+  --card-to: rgba(13, 6, 8, 0.95);
+  --panel: rgba(22, 9, 11, 0.84);
+  --surface: rgba(18, 8, 10, 0.88);
+  --border: #ff6b54;
+  --hover-border: #ffd65c;
+  --focus: #ffd65c;
+  --page-glow: rgba(255, 107, 84, 0.22);
+}
+
+.backend-shell[data-game="tennis"] {
+  --theme-bg-1: #0d220f;
+  --theme-bg-2: #050708;
+  --theme-bg-3: #2c5e24;
+  --theme-scanline: rgba(214, 255, 92, 0.05);
+  --card-from: rgba(16, 31, 13, 0.92);
+  --card-to: rgba(7, 11, 7, 0.95);
+  --panel: rgba(14, 22, 11, 0.84);
+  --surface: rgba(9, 17, 9, 0.88);
+  --border: #d6ff5c;
+  --hover-border: #32e6ff;
+  --focus: #ffd65c;
+  --page-glow: rgba(214, 255, 92, 0.18);
+}
+
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"]) {
+  --theme-bg-1: #07101b;
+  --theme-bg-2: #04060b;
+  --theme-bg-3: #203856;
+  --theme-scanline: rgba(115, 206, 255, 0.06);
+  --card-from: rgba(8, 19, 33, 0.92);
+  --card-to: rgba(5, 9, 15, 0.95);
+  --panel: rgba(9, 18, 28, 0.84);
+  --surface: rgba(7, 15, 23, 0.88);
+  --border: #73ceff;
+  --hover-border: #ff6b54;
+  --focus: #ffe45c;
+  --page-glow: rgba(115, 206, 255, 0.2);
+}
+
+.backend-shell[data-game="breakout"] {
+  --theme-bg-1: #1d0f08;
+  --theme-bg-2: #050506;
+  --theme-bg-3: #5a220f;
+  --theme-scanline: rgba(255, 160, 77, 0.06);
+  --card-from: rgba(33, 14, 10, 0.92);
+  --card-to: rgba(11, 7, 6, 0.95);
+  --panel: rgba(24, 11, 8, 0.84);
+  --surface: rgba(16, 8, 7, 0.88);
+  --border: #ff9f4d;
+  --hover-border: #ff4e5b;
+  --focus: #ffe45c;
+  --page-glow: rgba(255, 159, 77, 0.22);
+}
+
+.backend-shell[data-game="space_invaders"] {
+  --theme-bg-1: #0d0615;
+  --theme-bg-2: #040507;
+  --theme-bg-3: #28103e;
+  --theme-scanline: rgba(186, 109, 255, 0.06);
+  --card-from: rgba(17, 8, 27, 0.92);
+  --card-to: rgba(7, 5, 11, 0.95);
+  --panel: rgba(15, 8, 23, 0.84);
+  --surface: rgba(10, 7, 17, 0.88);
+  --border: #ba6dff;
+  --hover-border: #7dff65;
+  --focus: #ffe45c;
+  --page-glow: rgba(186, 109, 255, 0.24);
+}
+
+.muted,
+.ui-card-description,
+.mode-vs,
+.score-bar span,
+.field-label,
+.language-option small,
+.language-empty {
+  color: var(--muted);
+  text-shadow: 0 1px 0 var(--atari-shadow);
+}
+
+.header-copy,
+.ui-card-description,
+.control-instruction kbd,
+.model-name,
+.stat strong,
+.stat span {
+  line-height: 1.65;
+}
+
+.ui-button,
+.ui-input,
+.mode-select,
+.dialog-close,
+.language-option,
+.ui-card-root,
+.upload-block,
+.control-instruction,
+.stat,
+.alert {
+  border-color: var(--border);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset,
+    0 0 10px rgba(255, 122, 0, 0.12),
+    0 0 20px rgba(50, 230, 255, 0.08);
+}
+
+.ui-card-root,
+.language-dialog {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 24%),
+    linear-gradient(180deg, var(--card-from), var(--card-to));
+}
+
+.ui-card-root {
+  backdrop-filter: blur(4px);
+}
+
+.ui-button {
+  text-transform: uppercase;
+  line-height: 1.35;
+}
+
+.ui-button--default {
+  background:
+    linear-gradient(180deg, rgba(255, 181, 77, 0.22), rgba(255, 95, 46, 0.12)),
+    rgba(22, 12, 11, 0.92);
+  color: var(--neon-yellow);
+}
+
+.ui-button--outline,
+.mode-select,
+.ui-input,
+.language-option,
+.dialog-close {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 30%),
+    rgba(13, 9, 10, 0.84);
+  color: var(--foreground);
+}
+
+.ui-button--outline:not(:disabled):hover,
+.mode-select:hover:not(:disabled),
+.language-option:hover,
+.dialog-close:hover {
+  border-color: var(--hover-border);
+  background:
+    linear-gradient(180deg, rgba(50, 230, 255, 0.18), rgba(255, 122, 0, 0.08)),
+    rgba(15, 12, 14, 0.9);
+}
+
+.game-glyph {
+  background: linear-gradient(90deg, rgba(255, 122, 0, 0.25), rgba(255, 228, 92, 0.18));
+  color: var(--neon-yellow);
+  border: 1px solid var(--border);
+  box-shadow: 0 0 12px rgba(255, 122, 0, 0.18);
+}
+
+.controls-card,
+.controls-card .ui-card-content {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 18%),
+    linear-gradient(180deg, var(--controller-top), var(--controller-bottom));
+}
+
+.controls-card {
+  --border: #ffb14e;
+  --hover-border: #ffe45c;
+  --panel: rgba(59, 48, 40, 0.92);
+  --surface: rgba(69, 56, 47, 0.88);
+  --card: rgba(80, 66, 56, 0.9);
+  --card-two: rgba(52, 42, 36, 0.95);
+  --muted: #f3c983;
+  color: var(--controller-text);
+}
+
+.controls-card .ui-card-content,
+.controls-card .field-label,
+.controls-card .model-name,
+.controls-card .muted,
+.controls-card .mode-vs,
+.controls-card .ui-button,
+.controls-card .mode-select,
+.controls-card .ui-input,
+.controls-card kbd,
+.controls-card .stat,
+.controls-card .control-instruction,
+.controls-card .upload-block {
+  color: var(--controller-text);
+}
+
+.controls-card .upload-block,
+.controls-card .control-instruction,
+.controls-card .stat,
+.controls-card .mode-select,
+.controls-card .ui-input {
+  border-color: #c89b62;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 26%),
+    linear-gradient(180deg, rgba(111, 90, 74, 0.84), rgba(59, 48, 40, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+.controls-card .ui-button--default {
+  background:
+    linear-gradient(180deg, rgba(255, 181, 77, 0.3), rgba(153, 75, 27, 0.4)),
+    linear-gradient(180deg, #6f5a4a, #40352d);
+  color: #fff1b8;
+}
+
+.controls-card .ui-button--outline {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 24%),
+    linear-gradient(180deg, #675345, #3f342d);
+}
+
+.game-card[data-game="pong"] {
+  --card-from: rgba(9, 23, 7, 0.92);
+  --card-to: rgba(4, 10, 6, 0.95);
+  --border: #9bff5f;
+}
+
+.game-card[data-game="boxing"] {
+  --card-from: rgba(34, 10, 13, 0.92);
+  --card-to: rgba(13, 6, 8, 0.95);
+  --border: #ff6b54;
+}
+
+.game-card[data-game="tennis"] {
+  --card-from: rgba(16, 31, 13, 0.92);
+  --card-to: rgba(7, 11, 7, 0.95);
+  --border: #d6ff5c;
+}
+
+:is(.game-card[data-game="icehockey"], .game-card[data-game="ice_hockey"]) {
+  --card-from: rgba(8, 19, 33, 0.92);
+  --card-to: rgba(5, 9, 15, 0.95);
+  --border: #73ceff;
+}
+
+.game-card[data-game="breakout"] {
+  --card-from: rgba(33, 14, 10, 0.92);
+  --card-to: rgba(11, 7, 6, 0.95);
+  --border: #ff9f4d;
+}
+
+.game-card[data-game="space_invaders"] {
+  --card-from: rgba(17, 8, 27, 0.92);
+  --card-to: rgba(7, 5, 11, 0.95);
+  --border: #ba6dff;
+}

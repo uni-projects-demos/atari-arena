@@ -42,10 +42,10 @@ export class BrowserRuntime {
       this.worker.onmessage = ({
         data,
       }: MessageEvent<WorkerResponse>): void => {
-        if (data.kind === "ready") {
+        if (data.type === "ready") {
           clearTimeout(timer);
           resolve();
-        } else if (data.kind === "fatal") {
+        } else if (data.type === "fatal") {
           clearTimeout(timer);
           const err = new Error(data.message);
           reject(err);
@@ -64,13 +64,13 @@ export class BrowserRuntime {
     });
 
     void this.ready.catch(() => undefined);
-    this.post({ kind: "init", options: opts });
+    this.post({ type: "init", options: opts });
   }
 
   async request(path: string, init?: RequestInit): Promise<Response> {
     try {
       if (path === "/api/info" && (!init?.method || init.method === "GET")) {
-        return json(await this.call({ kind: "catalog" }));
+        return json(await this.call({ type: "catalog" }));
       }
 
       if (init?.method !== "POST" || !(init.body instanceof FormData)) {
@@ -83,7 +83,7 @@ export class BrowserRuntime {
       if (path === "/api/models/load") {
         return json(
           await this.call({
-            kind: "load",
+            type: "load",
             game,
             model: field(form, "model"),
           }),
@@ -109,7 +109,7 @@ export class BrowserRuntime {
 
         return json(
           await this.call({
-            kind: "upload",
+            type: "upload",
             game,
             filename: file.name,
             bytes: await file.arrayBuffer(),
@@ -131,9 +131,9 @@ export class BrowserRuntime {
     const id = this.nextId++;
 
     const sock = new LocalSocket(
-      (json) => this.post({ kind: "command", socket: id, json }),
+      (json) => this.post({ type: "command", socket: id, json }),
       () => {
-        this.post({ kind: "close", socket: id });
+        this.post({ type: "close", socket: id });
         this.sockets.delete(id);
       },
     );
@@ -143,7 +143,7 @@ export class BrowserRuntime {
     void this.ready
       .then(() => {
         if (sock.readyState === 0) {
-          this.post({ kind: "open", socket: id });
+          this.post({ type: "open", socket: id });
         }
       })
       .catch((err: unknown) => sock.fail(messageOf(err)));
@@ -157,7 +157,7 @@ export class BrowserRuntime {
     }
 
     this.closed = true;
-    this.post({ kind: "dispose" });
+    this.post({ type: "dispose" });
     this.fail(new Error("Runtime was disposed"));
   }
 
@@ -183,14 +183,14 @@ export class BrowserRuntime {
       this.pending.set(id, { resolve, reject, timer });
 
       this.post(
-        { kind: "rpc", id, request: req },
-        req.kind === "upload" ? [req.bytes] : [],
+        { type: "rpc", id, request: req },
+        req.type === "upload" ? [req.bytes] : [],
       );
     });
   }
 
   private receive(data: WorkerResponse): void {
-    if (data.kind === "rpc" || data.kind === "rpc_error") {
+    if (data.type === "rpc" || data.type === "rpc_error") {
       const p = this.pending.get(data.id);
 
       if (!p) {
@@ -200,7 +200,7 @@ export class BrowserRuntime {
       clearTimeout(p.timer);
       this.pending.delete(data.id);
 
-      if (data.kind === "rpc") {
+      if (data.type === "rpc") {
         p.resolve(data.result);
       } else {
         p.reject(new Error(data.message));
@@ -219,7 +219,7 @@ export class BrowserRuntime {
       return;
     }
 
-    switch (data.kind) {
+    switch (data.type) {
       case "open":
         socket.open();
         break;
@@ -244,7 +244,7 @@ export class BrowserRuntime {
 
         requestAnimationFrame(() => {
           if (!this.closed && socket.readyState === 1) {
-            this.post({ kind: "ack", socket: data.socket });
+            this.post({ type: "ack", socket: data.socket });
           }
         });
 

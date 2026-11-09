@@ -39,27 +39,27 @@ interface SessionState {
 }
 
 scope.onmessage = ({ data: msg }): void => {
-  if (msg.kind === "init") {
+  if (msg.type === "init") {
     if (init) {
-      send({ kind: "fatal", message: "Runtime initialized twice" });
+      send({ type: "fatal", message: "Runtime initialized twice" });
       return;
     }
 
-    init = initialize(msg.options).then(() => send({ kind: "ready" }));
+    init = initialize(msg.options).then(() => send({ type: "ready" }));
 
     void init.catch((err: unknown) =>
-      send({ kind: "fatal", message: messageOf(err) }),
+      send({ type: "fatal", message: messageOf(err) }),
     );
     return;
   }
 
   void dispatch(msg).catch((err: unknown) => {
-    if (msg.kind === "rpc") {
-      send({ kind: "rpc_error", id: msg.id, message: messageOf(err) });
+    if (msg.type === "rpc") {
+      send({ type: "rpc_error", id: msg.id, message: messageOf(err) });
     } else if ("socket" in msg) {
       fail(msg.socket, err);
     } else {
-      send({ kind: "fatal", message: messageOf(err) });
+      send({ type: "fatal", message: messageOf(err) });
     }
   });
 };
@@ -98,7 +98,7 @@ async function initialize(cfg: RuntimeOptions): Promise<void> {
 }
 
 async function dispatch(
-  msg: Exclude<WorkerRequest, { kind: "init" }>,
+  msg: Exclude<WorkerRequest, { type: "init" }>,
 ): Promise<void> {
   if (!init) {
     throw new Error("Runtime was not initialized");
@@ -106,17 +106,17 @@ async function dispatch(
 
   await init;
 
-  switch (msg.kind) {
+  switch (msg.type) {
     case "rpc": {
       const req = msg.request;
       const res =
-        req.kind === "catalog"
+        req.type === "catalog"
           ? wasm.catalog(manifest)
-          : req.kind === "load"
+          : req.type === "load"
             ? await models.load(req.game, req.model)
             : await models.upload(req.game, req.filename, req.bytes);
 
-      send({ kind: "rpc", id: msg.id, result: res });
+      send({ type: "rpc", id: msg.id, result: res });
       break;
     }
 
@@ -126,7 +126,7 @@ async function dispatch(
       }
 
       sockets.add(msg.socket);
-      send({ kind: "open", socket: msg.socket });
+      send({ type: "open", socket: msg.socket });
       break;
 
     case "command": {
@@ -227,7 +227,7 @@ async function start(socket: number, req: StartRequest): Promise<void> {
     const meta = await session.start();
 
     if (!state.stopped) {
-      send({ kind: "started", socket, metadata: meta });
+      send({ type: "started", socket, metadata: meta });
     }
   } catch (err: unknown) {
     fail(socket, err);
@@ -293,13 +293,17 @@ async function tick(socket: number, state: SessionState): Promise<void> {
 
     send(
       {
-        kind: "frame",
+        type: "frame",
         socket,
         metadata: frame.metadata,
         pixels: px.buffer,
       },
       [px.buffer],
     );
+
+    if (frame.metadata.is_finished) {
+      stop(socket);
+    }
   } catch (err: unknown) {
     fail(socket, err);
   } finally {
@@ -329,7 +333,7 @@ function stop(socket: number): void {
     }
   }
 
-  send({ kind: "close", socket });
+  send({ type: "close", socket });
 }
 
 function release(socket: number, state: SessionState): void {
@@ -343,7 +347,7 @@ function release(socket: number, state: SessionState): void {
 }
 
 function fail(socket: number, err: unknown): void {
-  send({ kind: "error", socket, message: messageOf(err) });
+  send({ type: "error", socket, message: messageOf(err) });
   stop(socket);
 }
 

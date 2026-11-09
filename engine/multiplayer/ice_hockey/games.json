@@ -1,5 +1,5 @@
 {
-  "key": "icehockey",
+  "key": "ice_hockey",
   "label": "Atari Ice Hockey",
   "description": "Atari Ice Hockey. Supports all match modes.",
   "rom_url": "roms/ice_hockey.bin",
@@ -20,7 +20,7 @@
   ],
   "modes": {
     "scoring": {
-      "kind": "ram",
+      "type": "ram",
       "addresses": [10, 11],
       "encoding": "bcd",
       "overrides": []
@@ -81,7 +81,7 @@
       "id": "default",
       "name": "Ice Hockey APPO \u00b7 504M steps",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/MattStammers/appo-atari_icehockey-superhuman/resolve/ccb1cb3ad1da4168170c4f847c49d179c2082d7e/checkpoint_p0/checkpoint_001961584_504340480.pth",
         "input_name": "observation",
         "output_name": "action",
@@ -107,7 +107,7 @@
       "id": "best",
       "name": "Ice Hockey APPO \u00b7 501M steps",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/MattStammers/appo-atari_icehockey-superhuman/resolve/ccb1cb3ad1da4168170c4f847c49d179c2082d7e/checkpoint_p0/best_001955200_501071872_reward_26.710.pth",
         "input_name": "observation",
         "output_name": "action",

@@ -1,54 +1,53 @@
 {
-  "name": "atari-model-arena-ui",
+  "name": "atari-arena",
   "version": "1.0.0",
-  "description": "Web UI for testing trained models against Atari game engines and, when supported, users and other models. Also supports user vs Atari.",
+  "description": "Evaluate & play trained models against Atari game engines, users & other models. Supports user vs game mode.",
   "private": true,
   "type": "module",
-  "author": "uni-projects-demos",
+  "author": "uni-project-demos",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/uni-projects-demos/atari-model-arena-ui.git"
+    "url": "git+https://github.com/uni-project-demos/atari-arena.git"
   },
   "bugs": {
-    "url": "https://github.com/uni-projects-demos/atari-model-arena-ui/issues"
+    "url": "https://github.com/uni-project-demos/atari-arena/issues"
   },
   "engines": {
-    "node": ">=26.9.0"
+    "node": ">=26.13.0"
   },
   "scripts": {
     "dev": "vite",
     "dev:browser": "node engine/tools/vite.mjs dev",
     "build": "vite build",
-    "build:pages": "vite build --mode pages",
+    "build:pages": "node engine/tools/vite.mjs pages",
     "build:wasm": "node engine/tools/build.mjs",
     "build:browser": "node engine/tools/vite.mjs build",
     "preview": "vite preview",
     "verify": "biome check . && tsc -p tsconfig.verify.json --noEmit",
     "verify:rust": "cargo fmt --manifest-path engine/Cargo.toml --all -- --check && cargo clippy --manifest-path engine/Cargo.toml --workspace --all-targets -- -D warnings",
-    "varify:all": "npm run verify && npm run verify:rust",
+    "verify:all": "npm run verify && npm run verify:rust",
     "verify:fix": "biome check --write . && tsc -p tsconfig.verify.json --noEmit && npm run verify:rust"
   },
   "dependencies": {
+    "@atari-arena/browser": "file:engine/browser",
     "clsx": "^2.1.1",
     "pixi.js": "^8.22.0",
     "react": "^19.3.1",
-    "react-dom": "^19.3.1",
-    "tailwind-merge": "^3.7.0",
-    "@atari-arena/browser": "file:engine/browser"
+    "react-dom": "^19.3.1"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.6.5",
+    "@biomejs/biome": "2.6.6",
+    "@farama/ale-wasm": "0.12.0",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitejs/plugin-react": "^6.2.1",
+    "@vitejs/plugin-react": "^6.3.0",
+    "sass": "^1.108.1",
     "typescript": "^7.0.2",
-    "vite": "^8.3.6",
-    "@farama/ale-wasm": "0.12.0",
-    "playwright": "1.65.0",
-    "ws": "8.22.1"
+    "vite": "^8.3.6"
   },
   "allowScripts": {
+    "@parcel/watcher@2.6.0": true,
     "protobufjs@7.6.6": true
   }
 }

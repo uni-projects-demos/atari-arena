@@ -5,11 +5,12 @@ resolver = "2"
 [workspace.package]
 version = "1.0.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.99"
+description = "Engine for evaluating & playing trained models against Atari game engines, users & other models."
 license = "GPL-3.0-only"
 
 [workspace.dependencies]
-arena-core = { path = "core" }
+atari-arena-engine-core = { path = "core" }
 serde = { version = "1.0.229", features = ["derive"] }
 serde_json = "1.0.154"
 serde_bytes = "0.11.19"
@@ -26,5 +27,5 @@ opt-level = "s"
 codegen-units = 1
 panic = "abort"
 
-[profile.release.package.arena-core]
+[profile.release.package.atari-arena-engine-core]
 opt-level = 3

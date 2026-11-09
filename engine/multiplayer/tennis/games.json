@@ -20,7 +20,7 @@
   ],
   "modes": {
     "scoring": {
-      "kind": "ram",
+      "type": "ram",
       "addresses": [71, 72],
       "encoding": "binary",
       "overrides": []
@@ -59,7 +59,7 @@
       "id": "default",
       "name": "Tennis APPO \u00b7 2B steps",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/edbeeching/atari_tennis_3333/resolve/7366664c291ce8c754dbefe152bca9133a52d751/checkpoint_p0/checkpoint_000976624_2000125952.pth",
         "input_name": "observation",
         "output_name": "action",
@@ -85,7 +85,7 @@
       "id": "best",
       "name": "Tennis APPO",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/edbeeching/atari_tennis_3333/resolve/7366664c291ce8c754dbefe152bca9133a52d751/checkpoint_p0/best_000528896_1083179008_reward_24.000.pth",
         "input_name": "observation",
         "output_name": "action",

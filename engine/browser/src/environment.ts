@@ -49,8 +49,8 @@ type Factory = (opts: {
 }) => Promise<Module<SingleEmulator | MultiEmulator>>;
 
 type Active =
-  | { kind: "ale"; instance: SingleEmulator }
-  | { kind: "multi_ale"; instance: MultiEmulator };
+  | { type: "ale"; instance: SingleEmulator }
+  | { type: "multi_ale"; instance: MultiEmulator };
 
 export class AtariEnvironment {
   private captureRam = false;
@@ -147,12 +147,12 @@ export class AtariEnvironment {
         }
 
         this.active = {
-          kind: "multi_ale",
+          type: "multi_ale",
           instance: emu as MultiEmulator,
         };
       } else {
         this.active = {
-          kind: "ale",
+          type: "ale",
           instance: emu as SingleEmulator,
         };
       }
@@ -198,7 +198,7 @@ export class AtariEnvironment {
 
     let rewards: number[];
 
-    if (cur.kind === "ale") {
+    if (cur.type === "ale") {
       if (mapped.length !== 1) {
         throw new Error("ALE expects one action");
       }
@@ -237,7 +237,7 @@ export class AtariEnvironment {
   private observation(): Observation {
     const cur = this.requireActive();
     const e = cur.instance;
-    const lives = cur.kind === "ale" ? e.lives() : -1;
+    const lives = cur.type === "ale" ? e.lives() : -1;
 
     return {
       width: e.getScreenWidth(),

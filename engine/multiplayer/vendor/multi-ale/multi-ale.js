@@ -1988,7 +1988,7 @@ async function createMultiALEModule(moduleArg = {}) {
     var getStringOrSymbol = address => { var symbol = emval_symbols[address]; if (symbol === undefined) {
         return AsciiToString(address);
     } return symbol; };
-    var __emval_create_invoker = (argCount, argTypesPtr, kind) => { var GenericWireTypeSize = 8; var [retType, ...argTypes] = emval_lookupTypes(argCount, argTypesPtr); var toReturnWire = retType.toWireType.bind(retType); var argFromPtr = argTypes.map(type => type.readValueFromPointer.bind(type)); argCount--; var captures = { toValue: Emval.toValue }; var args = argFromPtr.map((argFromPtr, i) => { var captureName = `argFromPtr${i}`; captures[captureName] = argFromPtr; return `${captureName}(args${i ? "+" + i * GenericWireTypeSize : ""})`; }); var functionBody; switch (kind) {
+    var __emval_create_invoker = (argCount, argTypesPtr, type) => { var GenericWireTypeSize = 8; var [retType, ...argTypes] = emval_lookupTypes(argCount, argTypesPtr); var toReturnWire = retType.toWireType.bind(retType); var argFromPtr = argTypes.map(type => type.readValueFromPointer.bind(type)); argCount--; var captures = { toValue: Emval.toValue }; var args = argFromPtr.map((argFromPtr, i) => { var captureName = `argFromPtr${i}`; captures[captureName] = argFromPtr; return `${captureName}(args${i ? "+" + i * GenericWireTypeSize : ""})`; }); var functionBody; switch (type) {
         case 0:
             functionBody = "toValue(handle)";
             break;

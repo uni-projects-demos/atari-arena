@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
-import { basename, dirname, join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
@@ -28,9 +28,13 @@ function run(cmd, args, env = {}) {
 
 await mkdir(out, { recursive: true });
 
-run("cargo", ["test", "--locked", "--manifest-path", manifestPath, "-p", "arena-core"], {
-  TS_RS_EXPORT_DIR: gen,
-});
+run(
+  "cargo",
+  ["test", "--locked", "--manifest-path", manifestPath, "-p", "atari-arena-engine-core"],
+  {
+    TS_RS_EXPORT_DIR: gen,
+  },
+);
 
 const types = (await readdir(gen))
   .filter((name) => name.endsWith(".ts") && name !== "index.ts")
@@ -50,7 +54,7 @@ run("cargo", [
   "--manifest-path",
   manifestPath,
   "-p",
-  "arena-core",
+  "atari-arena-engine-core",
   "--bin",
   "manifest",
   "--",
@@ -67,7 +71,7 @@ run("cargo", [
   "--target",
   "wasm32-unknown-unknown",
   "-p",
-  "arena-wasm",
+  "atari-arena-engine-wasm",
 ]);
 
 const meta = spawnSync(
@@ -159,10 +163,6 @@ async function copyAssets(src, dest, modelDir = false) {
   await mkdir(dest, { recursive: true });
 
   for (const entry of entries) {
-    if (modelDir && entry.name === "SOURCES.json") {
-      continue;
-    }
-
     if (modelDir && entry.isFile() && !/\.(json|md|txt)$/i.test(entry.name)) {
       continue;
     }
@@ -183,39 +183,11 @@ async function copyAssets(src, dest, modelDir = false) {
   }
 }
 
-const srcs = Object.create(null);
-
 for (const mod of mods) {
   await copyAssets(join(mod, "models"), join(out, "models"), true);
 
   await copyAssets(join(mod, "roms"), join(out, "roms"));
-
-  let provenance;
-
-  try {
-    provenance = JSON.parse(await readFile(join(mod, "models/SOURCES.json"), "utf8"));
-  } catch (err) {
-    if (err.code === "ENOENT") {
-      continue;
-    }
-
-    throw err;
-  }
-
-  for (const [name, val] of Object.entries(provenance)) {
-    const key = `${basename(mod)}/${name}`;
-
-    if (Object.hasOwn(srcs, key)) {
-      throw new Error(`Duplicate model provenance: ${key}`);
-    }
-
-    srcs[key] = val;
-  }
 }
-
-await mkdir(join(out, "models"), { recursive: true });
-
-await writeFile(join(out, "models/SOURCES.json"), `${JSON.stringify(srcs, null, 2)}\n`);
 
 await cp(join(engine, "multiplayer/vendor/multi-ale"), join(out, "vendor/multi-ale"), {
   recursive: true,

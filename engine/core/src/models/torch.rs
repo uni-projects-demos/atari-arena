@@ -184,7 +184,7 @@ impl<'a> Pickle<'a> {
                     } else {
                         parser.marked()?
                     };
-                    if vals.len() % 2 != 0 {
+                    if !vals.len().is_multiple_of(2) {
                         return Err(invalid("Invalid checkpoint dictionary entries"));
                     }
                     if opcode == b'd' {
@@ -195,8 +195,10 @@ impl<'a> Pickle<'a> {
                         return Err(invalid("Invalid checkpoint dictionary"));
                     };
                     dictionary.extend(
-                        vals.chunks_exact(2)
-                            .map(|pair: &[usize]| (pair[0], pair[1])),
+                        vals.as_chunks::<2>()
+                            .0
+                            .iter()
+                            .map(|pair| (pair[0], pair[1])),
                     );
                 }
                 b'q' | b'r' | 0x94 => {
@@ -301,10 +303,10 @@ impl<'a> Pickle<'a> {
             return Ok(Value::Tensor(tensor));
         }
         if name == "torch._utils._rebuild_parameter" {
-            if let Some(&arg) = args.first() {
-                if let Value::Tensor(tensor) = &self.nodes[arg] {
-                    return Ok(Value::Tensor(tensor.clone()));
-                }
+            if let Some(&arg) = args.first()
+                && let Value::Tensor(tensor) = &self.nodes[arg]
+            {
+                return Ok(Value::Tensor(tensor.clone()));
             }
             return Err(invalid("Invalid checkpoint parameter"));
         }
@@ -468,10 +470,10 @@ impl<'a> Weights<'a> {
         };
         let mut tensors: BTreeMap<String, Tensor> = BTreeMap::new();
         for &(key, val) in entries {
-            if let (Value::Text(name), Value::Tensor(tensor)) = (&nodes[key], &nodes[val]) {
-                if tensors.insert(name.clone(), tensor.clone()).is_some() {
-                    return Err(invalid("Duplicate checkpoint tensor"));
-                }
+            if let (Value::Text(name), Value::Tensor(tensor)) = (&nodes[key], &nodes[val])
+                && tensors.insert(name.clone(), tensor.clone()).is_some()
+            {
+                return Err(invalid("Duplicate checkpoint tensor"));
             }
         }
         if tensors.is_empty() {

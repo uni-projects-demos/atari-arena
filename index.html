@@ -3,16 +3,44 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#09090b" />
+    <meta name="theme-color" content="#342114" />
+
+    <title>Atari Arena | Eval &amp; play models</title>
+    <meta
+      name="description"
+      content="Evaluate & play trained models against Atari game engines, users & other models. Play Atari Boxing, Breakout, Ice Hockey, Pong, Space Invaders, Tennis."
+    />
+    <meta name="robots" content="index, follow" />
+    <link rel="canonical" href="https://uni-projects-demos.github.io/atari-arena/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Atari Arena" />
+    <meta property="og:title" content="Atari Arena | Eval &amp; play models" />
+    <meta property="og:description" content="Evaluate & play trained models against Atari game engines, users & other models. Play Atari Boxing, Breakout, Ice Hockey, Pong, Space Invaders, Tennis." />
+    <meta property="og:url" content="https://uni-projects-demos.github.io/atari-arena/" />
+
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Atari Arena | Eval &amp; play models" />
+    <meta name="twitter:description" content="Evaluate & play trained models against Atari game engines, users & other models. Play Atari Boxing, Breakout, Ice Hockey, Pong, Space Invaders, Tennis." />
+
+    <script async src="https://www.googletagmanager.com/gtm.js?id=GTM-NBF6D79G"></script>
     <script>
-      try {
-        document.documentElement.dataset.theme = localStorage.getItem("ui-theme") === "light" ? "light" : "dark";
-      } catch {
-        document.documentElement.dataset.theme = "dark";
+      window.dataLayer = window.dataLayer || [];
+      function gtag(...args) {
+        window.dataLayer.push(args);
+      }
+      gtag('js', new Date());
+    </script>
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebSite",
+        "name": "Atari Arena",
+        "url": "https://uni-projects-demos.github.io/atari-arena/",
+        "description": "Evaluate & play trained models against Atari game engines, users & other models. Play Atari Boxing, Breakout, Ice Hockey, Pong, Space Invaders, Tennis."
       }
     </script>
-    <title>Atari Model Arena</title>
-    <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
     <div id="root"></div>

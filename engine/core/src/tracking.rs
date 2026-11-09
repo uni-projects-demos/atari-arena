@@ -29,8 +29,8 @@ pub trait TrackingPolicy {
         })
     }
 }
-pub fn tracking_action(kind: TrackingKind, frame: &Observation, mirror: bool) -> Result<u32> {
-    match kind {
+pub fn tracking_action(_type: TrackingKind, frame: &Observation, mirror: bool) -> Result<u32> {
+    match _type {
         TrackingKind::Pong => crate::pong::Pong.tracking_action(frame, mirror),
         TrackingKind::Breakout => crate::breakout::Breakout.tracking_action(frame, mirror),
     }

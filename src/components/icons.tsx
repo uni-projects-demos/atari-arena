@@ -65,3 +65,74 @@ export function GitHubMarkIcon(): React.JSX.Element {
     </Icon>
   );
 }
+
+export type ArrowDirection = "up" | "down" | "left" | "right";
+
+const arrowPaths: Record<ArrowDirection, string> = {
+  up: "M12 20V4M5 11l7-7 7 7",
+  down: "M12 4v16M5 13l7 7 7-7",
+  left: "M20 12H4m7-7-7 7 7 7",
+  right: "M4 12h16m-7-7 7 7-7 7",
+};
+
+export function ArrowIcon({ direction }: { direction: ArrowDirection }): React.JSX.Element {
+  return (
+    <svg
+      className="direction-arrow-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path d={arrowPaths[direction]} />
+    </svg>
+  );
+}
+
+const directionByCharacter: Record<string, ArrowDirection> = {
+  "↑": "up",
+  "↓": "down",
+  "←": "left",
+  "→": "right",
+};
+
+export function ControlHint({ text }: { text: string }): React.JSX.Element {
+  const pieces = (segment: string): React.JSX.Element[] =>
+    Array.from(segment.matchAll(/[↑↓←→/]|[^↑↓←→/]+/gu), (match): React.JSX.Element => {
+      const part: string = match[0];
+      const key: string = `${match.index}:${part}`;
+      const direction: ArrowDirection | undefined = directionByCharacter[part];
+      return direction ? (
+        <span key={key} className="control-hint-arrow">
+          <span className="sr-only">{part}</span>
+          <ArrowIcon direction={direction} />
+        </span>
+      ) : part === "/" ? (
+        <span key={key} className="control-hint-separator">
+          <wbr />/<wbr />
+        </span>
+      ) : (
+        <span key={key}>{part}</span>
+      );
+    });
+
+  return (
+    <span className="control-hint">
+      {Array.from(text.matchAll(/\([^()]*\)|[^()]+|[()]/gu), (match): React.JSX.Element => {
+        const part: string = match[0];
+        return (
+          <span
+            key={`${match.index}:${part}`}
+            className={part.startsWith("(") ? "control-hint-detail" : "control-hint-base"}
+          >
+            {pieces(part)}
+          </span>
+        );
+      })}
+    </span>
+  );
+}

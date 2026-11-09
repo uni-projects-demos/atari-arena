@@ -1,0 +1,213 @@
+.game-card {
+  background: var(--game-tile, #b78748);
+  color: var(--game-tile-ink, #20130a);
+  text-shadow: none;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -3px 0 rgba(0, 0, 0, 0.14),
+    0 8px 18px rgba(0, 0, 0, 0.22);
+}
+
+.game-card .game-card-title {
+  color: var(--game-tile-ink, #20130a);
+  text-shadow: none;
+}
+
+.game-card .ui-button.wide {
+  background: var(--game-button, #64421e);
+  color: #fff0cd;
+  border-color: rgba(255, 245, 215, 0.45);
+  text-shadow: none;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.12),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.game-card .ui-button.wide:not(:disabled):hover {
+  background: color-mix(in srgb, var(--game-button, #64421e), white 12%);
+}
+
+.game-card .game-mode-badge {
+  background: #302721;
+  color: #f4e4c2;
+  border-color: #8f8170;
+  text-shadow: none;
+}
+
+.backend-shell[data-game="pong"] .backend-header h1,
+.backend-shell[data-game="tennis"] .backend-header h1,
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"])
+  .backend-header
+  h1,
+.backend-shell[data-game="breakout"] .backend-header h1 {
+  color: #272019;
+  text-shadow: none;
+}
+.backend-shell[data-game="boxing"] .backend-header h1,
+.backend-shell[data-game="space_invaders"] .backend-header h1 {
+  color: #fff2d6;
+  text-shadow: none;
+}
+
+.backend-shell[data-game="pong"] {
+  --game-cover-border: #e0d49c;
+}
+.backend-shell[data-game="boxing"] {
+  --game-cover-border: #d6ba82;
+}
+.backend-shell[data-game="tennis"] {
+  --game-cover-border: #dfca83;
+}
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"]) {
+  --game-cover-border: #dde1d8;
+}
+.backend-shell[data-game="breakout"] {
+  --game-cover-border: #f0eee6;
+}
+.backend-shell[data-game="space_invaders"] {
+  --game-cover-border: #e9dfa6;
+}
+
+.backend-shell[data-view="game"] {
+  --border: var(--game-cover-border);
+  --hover-border: var(--game-cover-border);
+  --focus: var(--game-cover-border);
+}
+
+.backend-shell[data-view="game"] .controls-card {
+  --border: var(--game-cover-border);
+  --hover-border: var(--game-cover-border);
+}
+
+.backend-shell[data-view="game"] .controls-card,
+.backend-shell[data-view="game"] .score-graph-card,
+.backend-shell[data-view="game"] .game-card-panel {
+  border: 2.5px solid var(--game-cover-border);
+}
+
+.backend-shell[data-view="game"] .ui-button,
+.backend-shell[data-view="game"] .model-upload-trigger,
+.backend-shell[data-view="game"] .mode-select,
+.backend-shell[data-view="game"] .ui-input,
+.backend-shell[data-view="game"] .upload-block,
+.backend-shell[data-view="game"] .control-instruction,
+.backend-shell[data-view="game"] .control-instruction kbd,
+.backend-shell[data-view="game"] .stat,
+.backend-shell[data-view="game"] .alert {
+  border-color: var(--game-cover-border);
+  border-width: 1.5px;
+}
+
+.backend-shell[data-view="game"] .controls-card .upload-block,
+.backend-shell[data-view="game"] .controls-card .control-instruction,
+.backend-shell[data-view="game"] .controls-card .mode-select,
+.backend-shell[data-view="game"] .controls-card .ui-input,
+.backend-shell[data-view="game"] .game-card-panel .stat {
+  border-color: var(--game-cover-border);
+}
+
+.backend-shell[data-view="game"] .controls-card,
+.backend-shell[data-view="game"] .score-graph-card {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 5px 16px rgba(0, 0, 0, 0.22);
+}
+.backend-shell[data-view="game"] .ui-button,
+.backend-shell[data-view="game"] .model-upload-trigger {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 245, 220, 0.16),
+    inset 0 -2px 0 rgba(35, 0, 0, 0.2);
+}
+
+.game-card {
+  border-color: var(--game-cover-border, #aa9b7c);
+  border-width: 2px;
+}
+.game-card .game-mode-badge {
+  background: #49443e;
+  color: #eee4d1;
+  border-color: #ada18d;
+}
+
+.backend-shell[data-game="boxing"] .arena-page--human-model,
+.backend-shell[data-game="boxing"] .arena-page--model-model {
+  --player-green: #d6d6d6;
+  --player-blue: #000000;
+}
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"])
+  .arena-page--human-model,
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"])
+  .arena-page--model-model {
+  --player-green: #2d32b8;
+  --player-blue: #e8cc63;
+}
+.backend-shell[data-game="pong"] .arena-page--human-model {
+  --player-green: #8cba54;
+  --player-blue: #bf8754;
+}
+.backend-shell[data-game="tennis"] .arena-page--human-model,
+.backend-shell[data-game="tennis"] .arena-page--model-model {
+  --player-green: #f08080;
+  --player-blue: #7580f0;
+}
+
+.backend-shell[data-game="boxing"] .arena-page--human-model .score-graph-line--blue,
+.backend-shell[data-game="boxing"] .arena-page--model-model .score-graph-line--blue {
+  filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.85));
+}
+.backend-shell[data-game="boxing"] .arena-page--human-model .score-player--blue,
+.backend-shell[data-game="boxing"] .arena-page--model-model .score-player--blue {
+  -webkit-text-stroke: 0.45px rgba(255, 255, 255, 0.7);
+  text-shadow: 0 0 2px rgba(255, 255, 255, 0.55);
+}
+
+.backend-shell[data-game="boxing"] .arena-page--model-game,
+.backend-shell[data-game="boxing"] .arena-page--user-game {
+  --player-green: #d6d6d6;
+}
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"])
+  .arena-page--model-game,
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"])
+  .arena-page--user-game {
+  --player-green: #2d32b8;
+}
+.backend-shell[data-game="tennis"] .arena-page--model-game,
+.backend-shell[data-game="tennis"] .arena-page--user-game {
+  --player-green: #f08080;
+}
+.backend-shell[data-game="pong"] .arena-page--model-game,
+.backend-shell[data-game="pong"] .arena-page--user-game {
+  --player-blue: #8cba54;
+}
+.backend-shell[data-game="breakout"] .arena-page--model-game,
+.backend-shell[data-game="breakout"] .arena-page--user-game {
+  --player-blue: #f0a080;
+}
+.backend-shell[data-game="space_invaders"] .arena-page--model-game,
+.backend-shell[data-game="space_invaders"] .arena-page--user-game {
+  --player-blue: #80b844;
+}
+
+:is(.backend-shell[data-game="icehockey"], .backend-shell[data-game="ice_hockey"])
+  .arena-page--model-user {
+  --player-green: #2d32b8;
+  --player-blue: #e8cc63;
+}
+
+.backend-shell[data-game="pong"] .arena-page--model-user {
+  --player-green: #bf8754;
+  --player-blue: #8cba54;
+}
+
+/* Specific component overrides follow the shared element styles. */
+.language-heading h2 {
+  margin-bottom: 0;
+}
+
+.telemetry-grid--versus .stat span,
+.telemetry-grid--versus .stat strong {
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

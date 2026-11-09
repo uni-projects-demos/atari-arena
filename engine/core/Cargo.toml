@@ -1,9 +1,14 @@
 [package]
-name = "arena-core"
+name = "atari-arena-engine-core"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+
+[lib]
+name = "arena_core"
+path = "src/lib.rs"
+
 [dependencies]
 serde.workspace = true
 serde_json.workspace = true
@@ -12,5 +17,6 @@ thiserror.workspace = true
 ts-rs.workspace = true
 prost = "0.14.4"
 zip = { version = "2.6.1", default-features = false, features = ["deflate"] }
+
 [lints]
 workspace = true

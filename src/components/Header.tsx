@@ -1,34 +1,23 @@
 import { type JSX, type RefObject, useRef, useState } from "react";
 import { useI18n } from "@/i18n";
-import { GitHubMarkIcon, GlobeIcon, HeaderIcon, MoonIcon, SunIcon } from "./icons";
+import { ArrowIcon, GitHubMarkIcon, GlobeIcon, HeaderIcon } from "./icons";
 import LangDialog from "./LangDialog";
 import { Button } from "./ui/button";
 
-export type ThemeMode = "dark" | "light";
-
 interface HeaderProps {
-  theme: ThemeMode;
   activeGame: boolean;
   arenaRunning: boolean;
   onBack: () => void;
-  onToggleTheme: () => void;
 }
 
 const REPO_URL: string = "https://github.com/uni-projects-demos/atari-model-arena-ui/";
 
-export default function Header({
-  theme,
-  activeGame,
-  arenaRunning,
-  onBack,
-  onToggleTheme,
-}: HeaderProps): JSX.Element {
+export default function Header({ activeGame, arenaRunning, onBack }: HeaderProps): JSX.Element {
   const { t, locale } = useI18n();
   const langDialogRef: RefObject<HTMLDialogElement | null> = useRef<HTMLDialogElement>(null);
   const langButtonRef: RefObject<HTMLButtonElement | null> = useRef<HTMLButtonElement>(null);
   const [isLangOpen, setIsLangOpen] = useState(false);
   const langLabel: string = t("i18n.language");
-  const themeLabel: string = t(theme === "dark" ? "theme.switchToLight" : "theme.switchToDark");
   const openLangDialog: () => void = (): void => {
     setIsLangOpen(true);
     langDialogRef.current?.showModal();
@@ -45,20 +34,10 @@ export default function Header({
             onClick={onBack}
             disabled={arenaRunning}
           >
-            {t("arena.back")}
+            <ArrowIcon direction="left" />
+            <span>{t("arena.back")}</span>
           </Button>
         )}
-
-        <Button
-          type="button"
-          variant="outline"
-          className="header-action theme-toggle"
-          onClick={onToggleTheme}
-          aria-label={themeLabel}
-          title={themeLabel}
-        >
-          <HeaderIcon>{theme === "dark" ? <SunIcon /> : <MoonIcon />}</HeaderIcon>
-        </Button>
 
         <Button
           ref={langButtonRef}

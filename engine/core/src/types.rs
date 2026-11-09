@@ -183,7 +183,6 @@ pub struct ModeSpec {
     pub scoring: Scoring,
     #[serde(default)]
     pub mirror_frame: bool,
-    // Restore readable text after mirroring, without altering policy observations.
     #[serde(default)]
     pub display_unmirror_regions: Vec<FrameRect>,
     #[serde(default)]
@@ -214,7 +213,7 @@ pub enum OutputKind {
     Scores,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[ts(export)]
 pub enum PolicySpec {
     Tracking {
@@ -454,6 +453,7 @@ pub struct FrameMetadata {
     pub player_action_names: BTreeMap<String, String>,
     pub starting_side: Option<Side>,
     pub match_number: u32,
+    pub is_finished: bool,
 }
 #[derive(Debug, Serialize, TS)]
 #[ts(export)]

@@ -1,0 +1,99 @@
+@media (min-width: 961px) {
+  .backend-shell {
+    height: 100dvh;
+    min-height: 0;
+    padding: 16px 0;
+  }
+
+  .backend-header {
+    margin-bottom: 16px;
+  }
+
+  .arena-page {
+    gap: 10px;
+  }
+
+  .controls-stack {
+    gap: 16px;
+  }
+
+  .controls-stack-clean {
+    padding-top: 12px;
+  }
+
+  .game-stage-content {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .pixi-shell {
+    width: min(100%, 480px, 49dvh);
+  }
+}
+
+@media (max-width: 960px) {
+  .arena-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .backend-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-self: stretch;
+  }
+
+  .arena-nav-desktop {
+    display: none;
+  }
+
+  .arena-back-header {
+    display: inline-flex;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 620px) {
+  .backend-shell {
+    width: min(100% - 20px, 1440px);
+    padding-top: 22px;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .game-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .locale-code {
+    display: none;
+  }
+
+  .language-options {
+    grid-template-columns: 1fr;
+  }
+
+  .telemetry-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .telemetry-grid--versus {
+    grid-template-columns: minmax(0, 1.55fr) minmax(0, 0.9fr) minmax(0, 1.55fr);
+  }
+
+  .telemetry-grid--versus .stat {
+    padding-inline: 6px;
+  }
+
+  .game-stage-content {
+    padding: 10px;
+  }
+}

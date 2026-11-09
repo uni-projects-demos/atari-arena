@@ -178,6 +178,7 @@ rustc-ice-*.txt
 
 /target/
 /public/engine/
+/public/runtime/
 /engine/target/
 /engine/core/bindings/
 /engine/browser/src/generated/

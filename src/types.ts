@@ -104,6 +104,7 @@ export type MsgClient =
 
 export interface MsgFrame extends MatchLabels {
   type: "frame";
+  is_finished: boolean;
   width: number;
   height: number;
   left_score: number;

@@ -18,7 +18,7 @@ pub struct CounterOverride {
     pub score: u32,
 }
 #[derive(Clone, Debug, Deserialize, Serialize, TS)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "type", rename_all = "snake_case")]
 #[ts(export)]
 pub enum Scoring {
     Signed {

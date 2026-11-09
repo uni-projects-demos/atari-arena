@@ -1,18 +1,22 @@
 [package]
-name = "arena-wasm"
+name = "atari-arena-engine-wasm"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
 license.workspace = true
+
 [lib]
+name = "arena_wasm"
 crate-type = ["cdylib", "rlib"]
+
 [dependencies]
-arena-core.workspace = true
+atari-arena-engine-core.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 wasm-bindgen = "=0.2.130"
 wasm-bindgen-futures = "=0.4.80"
 js-sys = "=0.3.107"
 serde-wasm-bindgen = "0.6.5"
+
 [lints]
 workspace = true

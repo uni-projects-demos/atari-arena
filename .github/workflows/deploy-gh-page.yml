@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-26.04 || ubuntu-latest
+    runs-on: ubuntu-26.04
 
     env:
       ARENA_RUNTIME: ${{ vars.ARENA_RUNTIME || (vars.API_URL && 'python' || 'browser') }}
@@ -54,7 +54,12 @@ jobs:
           VITE_WS_URL: ${{ vars.WS_URL }}
           VITE_RUNTIME: ${{ env.ARENA_RUNTIME }}
           VITE_BROWSER_DEVICE: ${{ vars.BROWSER_DEVICE || 'wasm' }}
-        run: npm run build:pages
+        run: |
+          if [ "$ARENA_RUNTIME" = "browser" ]; then
+            node engine/tools/vite.mjs pages
+          else
+            npm run build:pages
+          fi
 
       - name: Config
         uses: actions/configure-pages@v6
@@ -69,7 +74,7 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-26.04 || ubuntu-latest
+    runs-on: ubuntu-26.04
 
     needs: build
 

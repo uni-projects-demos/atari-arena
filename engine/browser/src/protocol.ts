@@ -35,28 +35,28 @@ export interface NamedModel {
 }
 
 export type RpcRequest =
-  | { kind: "catalog" }
-  | { kind: "load"; game: string; model: string }
-  | { kind: "upload"; game: string; filename: string; bytes: ArrayBuffer };
+  | { type: "catalog" }
+  | { type: "load"; game: string; model: string }
+  | { type: "upload"; game: string; filename: string; bytes: ArrayBuffer };
 
 export type RpcResult = Catalog | NamedModel;
 
 export type WorkerRequest =
-  | { kind: "init"; options: RuntimeOptions }
-  | { kind: "rpc"; id: number; request: RpcRequest }
-  | { kind: "open" | "ack" | "close"; socket: number }
-  | { kind: "command"; socket: number; json: string }
-  | { kind: "dispose" };
+  | { type: "init"; options: RuntimeOptions }
+  | { type: "rpc"; id: number; request: RpcRequest }
+  | { type: "open" | "ack" | "close"; socket: number }
+  | { type: "command"; socket: number; json: string }
+  | { type: "dispose" };
 
 export type WorkerResponse =
-  | { kind: "ready" }
-  | { kind: "fatal"; message: string }
-  | { kind: "rpc"; id: number; result: RpcResult }
-  | { kind: "rpc_error"; id: number; message: string }
-  | { kind: "open" | "close"; socket: number }
-  | { kind: "started"; socket: number; metadata: StartedMetadata }
-  | { kind: "frame"; socket: number; metadata: FrameMetadata; pixels: ArrayBuffer }
-  | { kind: "error"; socket: number; message: string };
+  | { type: "ready" }
+  | { type: "fatal"; message: string }
+  | { type: "rpc"; id: number; result: RpcResult }
+  | { type: "rpc_error"; id: number; message: string }
+  | { type: "open" | "close"; socket: number }
+  | { type: "started"; socket: number; metadata: StartedMetadata }
+  | { type: "frame"; socket: number; metadata: FrameMetadata; pixels: ArrayBuffer }
+  | { type: "error"; socket: number; message: string };
 
 export function messageOf(err: unknown): string {
   return err instanceof Error ? err.message : String(err);

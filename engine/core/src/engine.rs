@@ -156,14 +156,13 @@ impl RepeatedFrames {
         {
             return Err(ArenaError::Emulator("Invalid reward vector".into()));
         }
-        if let Some(prev) = &self.latest {
-            if prev.observation.width != transition.observation.width
-                || prev.observation.height != transition.observation.height
-            {
-                return Err(ArenaError::Emulator(
-                    "Frame dimensions changed during action repeat".into(),
-                ));
-            }
+        if let Some(prev) = &self.latest
+            && (prev.observation.width != transition.observation.width
+                || prev.observation.height != transition.observation.height)
+        {
+            return Err(ArenaError::Emulator(
+                "Frame dimensions changed during action repeat".into(),
+            ));
         }
         for (sum, reward) in self.rewards.iter_mut().zip(&transition.rewards) {
             *sum += reward;
@@ -426,6 +425,7 @@ impl<H: Host> Engine<H> {
                 player_actions: selection.by_slot,
                 starting_side: self.starting_side,
                 match_number: self.match_number,
+                is_finished: self.needs_reset,
             },
             pixels: frame.display_rgba(&self.mode.display_unmirror_regions)?,
         })

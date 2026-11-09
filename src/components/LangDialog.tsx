@@ -268,57 +268,63 @@ export default function LangDialog({ dialogRef, isOpen, onClose }: LangDialogPro
       onClick={onDialogClick}
       onKeyDown={onDialogKeyDown}
     >
-      <div className="language-heading">
-        <h2 id="language-heading">{t("i18n.language")}</h2>
-        <button
-          type="button"
-          className="dialog-close"
-          aria-label={t("i18n.close")}
-          title={t("i18n.close")}
-          onClick={close}
-        >
-          ×
-        </button>
+      <div className="language-dialog-header">
+        <div className="language-heading">
+          <h2 id="language-heading">{t("i18n.language")}</h2>
+          <button
+            type="button"
+            className="dialog-close"
+            aria-label={t("i18n.close")}
+            title={t("i18n.close")}
+            onClick={close}
+          >
+            ×
+          </button>
+        </div>
+
+        <label className="language-search-label" htmlFor="language-search">
+          {t("i18n.searchLanguages")}
+        </label>
+        <Input
+          ref={searchRef}
+          id="language-search"
+          type="search"
+          autoComplete="off"
+          spellCheck={false}
+          aria-controls="language-options"
+          value={query}
+          onChange={(event: ChangeEvent<HTMLInputElement>): void => setQuery(event.target.value)}
+        />
       </div>
 
-      <label className="language-search-label" htmlFor="language-search">
-        {t("i18n.searchLanguages")}
-      </label>
-      <Input
-        ref={searchRef}
-        id="language-search"
-        type="search"
-        autoComplete="off"
-        spellCheck={false}
-        aria-controls="language-options"
-        value={query}
-        onChange={(event: ChangeEvent<HTMLInputElement>): void => setQuery(event.target.value)}
-      />
+      <div className="language-dialog-scroll">
+        <div id="language-options" className="language-options" translate="no">
+          {filteredLangs.map(
+            ({ code, native }: LangInfo): JSX.Element => (
+              <button
+                key={code}
+                type="button"
+                className="language-option"
+                data-locale={code}
+                aria-pressed={code === locale}
+                onClick={(): void => {
+                  setLocale(code);
+                  close();
+                }}
+              >
+                <span lang={code} dir="auto">
+                  {native}
+                </span>
+                <small dir="ltr">{code.toUpperCase()}</small>
+              </button>
+            ),
+          )}
+        </div>
 
-      <div id="language-options" className="language-options" translate="no">
-        {filteredLangs.map(
-          ({ code, native }: LangInfo): JSX.Element => (
-            <button
-              key={code}
-              type="button"
-              className="language-option"
-              data-locale={code}
-              aria-pressed={code === locale}
-              onClick={(): void => {
-                setLocale(code);
-                close();
-              }}
-            >
-              <span lang={code} dir="auto">
-                {native}
-              </span>
-              <small dir="ltr">{code.toUpperCase()}</small>
-            </button>
-          ),
+        {filteredLangs.length === 0 && (
+          <p className="language-empty">{t("i18n.noLanguagesFound")}</p>
         )}
       </div>
-
-      {filteredLangs.length === 0 && <p className="language-empty">{t("i18n.noLanguagesFound")}</p>}
     </dialog>
   );
 }

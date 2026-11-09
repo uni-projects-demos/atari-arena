@@ -110,7 +110,7 @@
       "user_controls": null,
       "emulator": "ale",
       "scoring": {
-        "kind": "signed",
+        "type": "signed",
         "positive": "right",
         "negative": "left"
       },
@@ -142,7 +142,7 @@
       ],
       "emulator": "ale",
       "scoring": {
-        "kind": "signed",
+        "type": "signed",
         "positive": "right",
         "negative": "left"
       },
@@ -160,7 +160,7 @@
       "id": "default",
       "name": "Space Invaders APPO \u00b7 40K mean",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/MattStammers/appo-atari_spaceinvaders-superhuman/resolve/3107b58ad820e99ea9ef9de145f18664786062bd/checkpoint_p0/checkpoint_001966064_505348096.pth",
         "input_name": "observation",
         "output_name": "action",
@@ -186,7 +186,7 @@
       "id": "best",
       "name": "Space Invaders APPO",
       "policy": {
-        "kind": "onnx",
+        "type": "onnx",
         "url": "https://huggingface.co/MattStammers/appo-atari_spaceinvaders-superhuman/resolve/3107b58ad820e99ea9ef9de145f18664786062bd/checkpoint_p0/best_001932448_494706688_reward_1923.730.pth",
         "input_name": "observation",
         "output_name": "action",

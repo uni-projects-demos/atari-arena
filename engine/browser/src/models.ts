@@ -30,7 +30,7 @@ export class ModelStore {
   async load(game: string, id: string): Promise<NamedModel> {
     const model = modelFrom(this.manifest, game, id);
 
-    if (model.policy.kind === "onnx") {
+    if (model.policy.type === "onnx") {
       const i = model.input;
 
       await this.use(game, model, (s) =>
@@ -83,7 +83,7 @@ export class ModelStore {
       id,
       name: filename.replace(/\.onnx$/i, ""),
       policy: {
-        kind: "onnx",
+        type: "onnx",
         url: `memory:${id}`,
         input_name: "observation",
         output_name: "action",
@@ -232,7 +232,7 @@ export class ModelStore {
     game: string,
     model: ModelSpec,
   ): Promise<InferenceSession> {
-    if (model.policy.kind !== "onnx") {
+    if (model.policy.type !== "onnx") {
       throw new Error("Expected an ONNX policy");
     }
 
@@ -312,7 +312,7 @@ export class ModelStore {
     vals: Float32Array,
     dims: readonly number[],
   ): Promise<number> {
-    if (model.policy.kind !== "onnx") {
+    if (model.policy.type !== "onnx") {
       throw new Error("Expected an ONNX policy");
     }
 

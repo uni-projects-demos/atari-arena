@@ -1,0 +1,83 @@
+@use "sass:map";
+
+$games: (
+  "pong": (
+    background: #d1c16e,
+    ink: #33250e,
+    button: #806527,
+    border: #e0d49c,
+  ),
+  "boxing": (
+    background: #b64132,
+    ink: #20130a,
+    button: #7a2b22,
+    border: #d6ba82,
+  ),
+  "tennis": (
+    background: #56a06e,
+    ink: #102e1d,
+    button: #2e6948,
+    border: #dfca83,
+  ),
+  "icehockey": (
+    background: #63a6b4,
+    ink: #0e2e3b,
+    button: #2e6678,
+    border: #dde1d8,
+  ),
+  "breakout": (
+    background: #ce8a4d,
+    ink: #2d1b0b,
+    button: #86522e,
+    border: #f0eee6,
+  ),
+  "space_invaders": (
+    background: #526d9f,
+    ink: #20130a,
+    button: #30436d,
+    border: #e9dfa6,
+  ),
+);
+
+:root {
+  --page-background: #342114;
+  background: var(--page-background);
+}
+
+html[data-game="home"] {
+  --page-background: #342114;
+}
+
+@each $game, $colors in $games {
+  html[data-game="#{$game}"] {
+    --page-background: #{map.get($colors, background)};
+  }
+}
+
+html[data-game="ice_hockey"] {
+  --page-background: #{map.get(map.get($games, "icehockey"), background)};
+}
+
+body {
+  background: var(--page-background);
+}
+
+.backend-shell::before {
+  background: var(--page-background);
+}
+
+@each $game, $colors in $games {
+  .game-card[data-game="#{$game}"] {
+    --game-tile: #{map.get($colors, background)};
+    --game-tile-ink: #{map.get($colors, ink)};
+    --game-button: #{map.get($colors, button)};
+    --game-cover-border: #{map.get($colors, border)};
+  }
+}
+
+.game-card[data-game="ice_hockey"] {
+  --game-tile: #{map.get(map.get($games, "icehockey"), background)};
+  --game-tile-ink: #{map.get(map.get($games, "icehockey"), ink)};
+  --game-button: #{map.get(map.get($games, "icehockey"), button)};
+  --game-cover-border: #{map.get(map.get($games, "icehockey"), border)};
+}
